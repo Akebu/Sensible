@@ -1,0 +1,11 @@
+Package: com.tonyciroussel.sensible
+Name: Sensible
+Depends: mobilesubstrate
+Version: 0.1
+Architecture: iphoneos-arm
+Description: Use TouchID sensor as Home button
+Maintainer: Tony Ciroussel
+Author: Tony Ciroussel
+Section: Tweaks
+Homepage: https://akebu.github.io/cydia/depictions/?p=com.tonyciroussel.sensible
+Depiction: https://akebu.github.io/cydia/depictions/?p=com.tonyciroussel.sensible
