@@ -1,4 +1,4 @@
 # Sensible
 
 Use TouchID sensor as Home button.
-A simple alternative to VirtualHome by @moeseth
+A simple alternative to VirtualHome created by @moeseth
