@@ -1,4 +1,5 @@
 #import <libactivator/libactivator.h>
+#import "SensibleConst.h"
 
 @interface SensibleEvent : NSObject <LAEventDataSource>
 @end
@@ -16,40 +17,40 @@ static SensibleEvent *sensibleEvent;
 
 - (id)init {
         if ((self = [super init])) {
-                [LASharedActivator registerEventDataSource:self forEventName:@"com.sensible.singletouch"];
-		[LASharedActivator registerEventDataSource:self forEventName:@"com.sensible.doubletouch"];
-		[LASharedActivator registerEventDataSource:self forEventName:@"com.sensible.tripletouch"];
-		[LASharedActivator registerEventDataSource:self forEventName:@"com.sensible.hold"];
-		[LASharedActivator registerEventDataSource:self forEventName:@"com.sensible.singletouchandhold"];
+                [LASharedActivator registerEventDataSource:self forEventName:SingleTouch];
+		[LASharedActivator registerEventDataSource:self forEventName:DoubleTouch];
+		[LASharedActivator registerEventDataSource:self forEventName:TripleTouch];
+		[LASharedActivator registerEventDataSource:self forEventName:Hold];
+		[LASharedActivator registerEventDataSource:self forEventName:SingleTouchAndHold];
         }
         return self;
 }
 
 - (void)dealloc {
-	[LASharedActivator unregisterEventDataSourceWithEventName:@"com.sensible.singletouch"];
-	[LASharedActivator unregisterEventDataSourceWithEventName:@"com.sensible.doubletouch"];
-	[LASharedActivator unregisterEventDataSourceWithEventName:@"com.sensible.tripletouch"];
-	[LASharedActivator unregisterEventDataSourceWithEventName:@"com.sensible.hold"];
-	[LASharedActivator unregisterEventDataSourceWithEventName:@"com.sensible.singletouchandhold"];
+	[LASharedActivator unregisterEventDataSourceWithEventName:SingleTouch];
+	[LASharedActivator unregisterEventDataSourceWithEventName:DoubleTouch];
+	[LASharedActivator unregisterEventDataSourceWithEventName:TripleTouch];
+	[LASharedActivator unregisterEventDataSourceWithEventName:Hold];
+	[LASharedActivator unregisterEventDataSourceWithEventName:SingleTouchAndHold];
         [super dealloc];
 }
 
 - (NSString *)localizedTitleForEventName:(NSString *)eventName {
 	NSString *title = nil;
-	if([eventName isEqualToString:@"com.sensible.singletouch"]){
+	if([eventName isEqualToString:SingleTouch]){
 		title = @"Single touch";
 	}
-	else if([eventName isEqualToString:@"com.sensible.doubletouch"]){
+	else if([eventName isEqualToString:DoubleTouch]){
 		title = @"Double touch";
 	}
-	else if([eventName isEqualToString:@"com.sensible.tripletouch"]){
+	else if([eventName isEqualToString:TripleTouch]){
 		title = @"Triple touch";
 	}
-	else if([eventName isEqualToString:@"com.sensible.singletouchandhold"]){
-		title = @"Single touch and hold";
-	}
-	else if([eventName isEqualToString:@"com.sensible.hold"]){
+	else if([eventName isEqualToString:Hold]){
 		title = @"Hold";
+	}
+	else if([eventName isEqualToString:SingleTouchAndHold]){
+		title = @"Single touch and hold";
 	}
         return title;
 }
@@ -60,20 +61,20 @@ static SensibleEvent *sensibleEvent;
 
 - (NSString *)localizedDescriptionForEventName:(NSString *)eventName {
 	NSString *description;
-	if([eventName isEqualToString:@"com.sensible.singletouch"]){
+	if([eventName isEqualToString:SingleTouch]){
 		description = @"Touch sensor once";
 	}
-	if([eventName isEqualToString:@"com.sensible.doubletouch"]){
+	if([eventName isEqualToString:DoubleTouch]){
 		description = @"Touch sensor twice";
 	}
-	if([eventName isEqualToString:@"com.sensible.tripletouch"]){
+	if([eventName isEqualToString:TripleTouch]){
 		description = @"Touch sensor thrice";
 	}
-	if([eventName isEqualToString:@"com.sensible.singletouchandhold"]){
-		description = @"Touch sensor once and hold";
+	if([eventName isEqualToString:Hold]){
+		description = @"Hold on the sensor";
 	}
-	if([eventName isEqualToString:@"com.sensible.hold"]){
-		description = @"Put sensor once and hold";
+	if([eventName isEqualToString:SingleTouchAndHold]){
+		description = @"Touch sensor once and hold";
 	}
         return description;
 }

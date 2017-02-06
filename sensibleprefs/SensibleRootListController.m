@@ -57,6 +57,7 @@
 				[specifier setProperty:@YES forKey:@"default"];
 				[specifier setProperty:@"com.tonyciroussel.sensibleprefs" forKey:@"defaults"];
 				[specifier setProperty:@"isEnabled" forKey:@"key"];
+				[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 				specifier;
 			})];
 

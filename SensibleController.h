@@ -8,6 +8,16 @@
 #include <mach/mach_time.h>
 #import <objc/runtime.h>
 
+@interface SBUIController
++(id) sharedInstance;
+-(BOOL) handleMenuDoubleTap;
+@end
+
+@interface SBVoiceControlController : NSObject
++(id)sharedInstance;
+-(BOOL)handleHomeButtonHeld;
+@end
+
 @protocol SBUIBiometricEventMonitorDelegate
 @required
 -(void)biometricEventMonitor:(id)monitor handleBiometricEvent:(unsigned)event;
@@ -38,13 +48,30 @@
 
 @interface SensibleController : NSObject <SBUIBiometricEventMonitorDelegate> {
 	BOOL isMonitoring;
+	
 }
+
+@property (nonatomic, assign) BOOL bypassNextTouch;
+@property (nonatomic, assign) BOOL isEnabled;
+@property (nonatomic, assign) float duration;
+@property (nonatomic, assign) float intensity;
+@property (nonatomic, assign) int singleTouchAction;
+@property (nonatomic, assign) int doubleTouchAction;
+@property (nonatomic, assign) int tripleTouchAction;
+@property (nonatomic, assign) int holdTouchAction;
+@property (nonatomic, assign) int singleTouchAndHoldAction;
 
 + (id)sharedInstance;
 - (void)startMonitoring;
 - (void)stopMonitoring;
-- (void)vibrateWithDuration:(int)duration ForIntensity:(float)intensity;
+- (void)vibrateWithDuration:(float)duration ForIntensity:(float)intensity;
 - (void)simulateHomeButtonDown;
 - (void)simulateHomeButtonUp;
 - (void)simulateLockButton;
+- (void)sendEventFromSource:(NSString *)source;
+@end
+
+@interface SBLockScreenManager : NSObject
++ (id) sharedInstanceIfExists;
+- (BOOL)isUILocked;
 @end

@@ -1,4 +1,5 @@
 #include "SensibleVibrationsController.h"
+#include "SensibleConst.h"
 #include "Headers.h"
 
 FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, id, NSDictionary*);
@@ -20,11 +21,12 @@ FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, 
 			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:Nil target:self set:@selector(sendVibrationWithValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSliderCell edit:Nil];
 				
 			[specifier setProperty:@35 forKey:@"default"];
-			[specifier setProperty:@"com.tonyciroussel.sensibleprefs" forKey:@"defaults"];
-			[specifier setProperty:@"vibrationDuration" forKey:@"key"];
+			[specifier setProperty:SensiblePlist forKey:@"defaults"];
+			[specifier setProperty:VibrationDurationKey forKey:@"key"];
 			[specifier setProperty:@0 forKey:@"min"];
 			[specifier setProperty:@80 forKey:@"max"];
 			[specifier setProperty:@YES forKey:@"showValue"];
+			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			[specifier setIdentifier:@"Duration"];
 			specifier;
 		})];
@@ -36,11 +38,12 @@ FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, 
 			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:Nil target:self set:@selector(sendVibrationWithValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSliderCell edit:Nil];
 				
 			[specifier setProperty:@1 forKey:@"default"];
-			[specifier setProperty:@"com.tonyciroussel.sensibleprefs" forKey:@"defaults"];
-			[specifier setProperty:@"vibrationIntensity" forKey:@"key"];
+			[specifier setProperty:SensiblePlist forKey:@"defaults"];
+			[specifier setProperty:VibrationIntensityKey forKey:@"key"];
 			[specifier setProperty:@0 forKey:@"min"];
 			[specifier setProperty:@1 forKey:@"max"];
 			[specifier setProperty:@YES forKey:@"showValue"];
+			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			[specifier setIdentifier:@"Intensity"];
 			specifier;
 		})];
@@ -58,16 +61,14 @@ FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, 
 	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.tonyciroussel.sensibleprefs.plist"];
 	if([specifier.identifier isEqualToString:@"Intensity.0"]){
 		intensity = value;
-		duration = [settings objectForKey:@"vibrationDuration"] ? [settings objectForKey:@"vibrationDuration"] : @35;
+		duration = [settings objectForKey:VibrationDurationKey] ? [settings objectForKey:VibrationDurationKey] : @35;
 	}
 	else
 	{
 		duration = value;
-		intensity = [settings objectForKey:@"vibrationIntensity"] ? [settings objectForKey:@"vibrationIntensity"] : @1;
+		intensity = [settings objectForKey:VibrationIntensityKey] ? [settings objectForKey:VibrationIntensityKey] : @1;
 	}
-	NSLog(@"%@", duration);
-	NSLog(@"%@\n----", intensity);
-	NSArray* arr = @[[NSNumber numberWithBool:YES], duration, [NSNumber numberWithBool:NO], [NSNumber numberWithInt:50]];
+	NSArray* arr = @[[NSNumber numberWithBool:YES], duration];
 	NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:arr,@"VibePattern", intensity,@"Intensity",nil];
 	AudioServicesPlaySystemSoundWithVibration(kSystemSoundID_Vibrate, nil, dict);
 }
