@@ -11,6 +11,7 @@
 @interface SBUIController
 +(id) sharedInstance;
 -(BOOL) handleMenuDoubleTap;
+- (BOOL)clickedMenuButton;
 @end
 
 @interface SBVoiceControlController : NSObject
@@ -48,13 +49,20 @@
 
 @interface SensibleController : NSObject <SBUIBiometricEventMonitorDelegate> {
 	BOOL isMonitoring;
-	
+	BOOL isHolding;
+	int numberOfTouch;
+	NSMutableArray *touchRecord;
+	CFTimeInterval startTime;
+	NSTimer *holdTimer;
 }
 
-@property (nonatomic, assign) BOOL bypassNextTouch;
+@property (nonatomic, strong) NSTimer *touchTimer;
 @property (nonatomic, assign) BOOL isEnabled;
+@property (nonatomic, assign) BOOL protectCC;
+@property (nonatomic, assign) BOOL optimize;
 @property (nonatomic, assign) float duration;
 @property (nonatomic, assign) float intensity;
+@property (nonatomic, strong) NSNumber *waitTime;
 @property (nonatomic, assign) int singleTouchAction;
 @property (nonatomic, assign) int doubleTouchAction;
 @property (nonatomic, assign) int tripleTouchAction;
@@ -64,14 +72,21 @@
 + (id)sharedInstance;
 - (void)startMonitoring;
 - (void)stopMonitoring;
-- (void)vibrateWithDuration:(float)duration ForIntensity:(float)intensity;
-- (void)simulateHomeButtonDown;
-- (void)simulateHomeButtonUp;
-- (void)simulateLockButton;
-- (void)sendEventFromSource:(NSString *)source;
+- (void)resetTouchTimer;
 @end
 
 @interface SBLockScreenManager : NSObject
 + (id) sharedInstanceIfExists;
 - (BOOL)isUILocked;
+@end
+
+@interface SBControlCenterController
++(id)sharedInstance;
+-(BOOL)isVisible;
+-(void)dismissAnimated:(BOOL)arg1 completion:(/*^block*/id)arg2;
+@end
+
+@interface SBNotificationCenterController
++(id)sharedInstance;
+-(void)dismissAnimated:(BOOL)arg1 ;
 @end

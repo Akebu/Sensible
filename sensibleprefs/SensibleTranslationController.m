@@ -6,6 +6,7 @@
 	if(_specifiers == nil){
 
 		NSMutableArray *specifiers = [[NSMutableArray alloc] init];
+		NSString *mainBundle = [[self bundle] bundlePath];
 
 		PSSpecifier *specifier = [PSSpecifier groupSpecifierWithName:nil];
 		[specifier setProperty:LocalizedString(@"♥") forKey:@"footerText"];
@@ -27,7 +28,8 @@
 			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Help me to translate") target:self set:NULL get:NULL detail:Nil cell:PSButtonCell edit:Nil];
 			[specifier setIdentifier:@"Repo"];
 			specifier->action = @selector(sendMailToTranslate);
-			//[specifier setProperty:[allIcons objectForKey:bundleID] forKey:@"iconImage"];
+			UIImage *image = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"%@/Translate.png", mainBundle]];
+			[specifier setProperty:image forKey:@"iconImage"];
 			specifier;
 		})];
 		_specifiers = specifiers;

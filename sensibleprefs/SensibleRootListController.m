@@ -1,4 +1,5 @@
 #include "SensibleRootListController.h"
+#include "SensibleConst.h"
 
 @implementation TitleCell
 - (id)initWithSpecifier:(PSSpecifier *)specifier {
@@ -44,7 +45,7 @@
 - (NSArray *)specifiers {
 	if (_specifiers == nil) {
 			NSMutableArray *specifiers = [[NSMutableArray alloc] init];
-
+			NSString *mainBundle = [[self bundle] bundlePath];
 			[specifiers addObject:({
 				PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:Nil target:self set:Nil get:Nil detail:Nil cell:PSGroupCell edit:Nil];
 				[specifier setProperty:@"TitleCell" forKey:@"headerCellClass"];
@@ -55,8 +56,8 @@
 				PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Enabled") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSwitchCell edit:Nil];
 				
 				[specifier setProperty:@YES forKey:@"default"];
-				[specifier setProperty:@"com.tonyciroussel.sensibleprefs" forKey:@"defaults"];
-				[specifier setProperty:@"isEnabled" forKey:@"key"];
+				[specifier setProperty:SensiblePlist forKey:@"defaults"];
+				[specifier setProperty:EnableKey forKey:@"key"];
 				[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 				specifier;
 			})];
@@ -86,25 +87,30 @@
 				PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Source code") target:self set:NULL get:NULL detail:Nil cell:PSButtonCell edit:Nil];
 				[specifier setIdentifier:@"Source_Code"];
 				specifier->action = @selector(buttonPressedForSpecifier:);
-				//[specifier setProperty:[allIcons objectForKey:bundleID] forKey:@"iconImage"];
+				UIImage *image = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"%@/Github.png", mainBundle]];
+				[specifier setProperty:image forKey:@"iconImage"];
 				specifier;
 			})];
 			[specifiers addObject:({
 				PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Send me a mail") target:self set:NULL get:NULL detail:Nil cell:PSButtonCell edit:Nil];
 				[specifier setIdentifier:@"Mail"];
 				specifier->action = @selector(buttonPressedForSpecifier:);
-				//[specifier setProperty:[allIcons objectForKey:bundleID] forKey:@"iconImage"];
+				UIImage *image = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"%@/Mail.png", mainBundle]];
+				[specifier setProperty:image forKey:@"iconImage"];
 				specifier;
 			})];
 			[specifiers addObject:({
 				PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Add my repository") target:self set:NULL get:NULL detail:Nil cell:PSButtonCell edit:Nil];
 				[specifier setIdentifier:@"Repo"];
 				specifier->action = @selector(buttonPressedForSpecifier:);
-				//[specifier setProperty:[allIcons objectForKey:bundleID] forKey:@"iconImage"];
+				UIImage *image = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"%@/RepoIcon.png", mainBundle]];
+				[specifier setProperty:image forKey:@"iconImage"];
 				specifier;
 			})];
 			[specifiers addObject:({
 				PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Translation")  target:self set:Nil get:Nil detail:NSClassFromString(@"SensibleTranslationController") cell:PSLinkCell edit:Nil];
+				UIImage *image = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"%@/Globe.png", mainBundle]];
+				[specifier setProperty:image forKey:@"iconImage"];
 				specifier;
 			})];
 			_specifiers = specifiers;

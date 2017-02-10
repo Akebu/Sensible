@@ -115,7 +115,35 @@
 			
 			[specifier setProperty:@YES forKey:@"default"];
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
-			[specifier setProperty:@"ProtectCC" forKey:@"key"];
+			[specifier setProperty:ProtectCCKey forKey:@"key"];
+			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
+			specifier;
+		})];
+		[specifiers addObject:({
+			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Touch wait time (ms)") target:self set:Nil get:Nil detail:Nil cell:PSGroupCell edit:Nil];
+			[specifier setProperty:LocalizedString(@"Default is 0.25 ms, if optimize is enabled Sensible will analyze your habits in order to set the best wait time. The 5 first times can be long but it will become faster with time") forKey:@"footerText"];
+			specifier;
+		})];
+		[specifiers addObject:({
+			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Optimize wait time") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSwitchCell edit:Nil];
+				
+			[specifier setProperty:@YES forKey:@"default"];
+			[specifier setProperty:SensiblePlist forKey:@"defaults"];
+			[specifier setProperty:OptimizeKey forKey:@"key"];
+			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
+			specifier;
+		})];
+		[specifiers addObject:({
+			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:nil target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSliderCell edit:Nil];
+	
+			[specifier setProperty:@0.25 forKey:@"default"];
+			[specifier setProperty:@YES forKey:@"showValue"];
+			[specifier setProperty:SensiblePlist forKey:@"defaults"];
+			[specifier setProperty:WaitTimeKey forKey:@"key"];
+			[specifier setProperty:@0.10 forKey:@"min"];
+			[specifier setProperty:@0.50 forKey:@"max"];
+			[specifier setProperty:@YES forKey:@"isSegmented"];
+			[specifier setProperty:@8 forKey:@"segmentCount"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			specifier;
 		})];

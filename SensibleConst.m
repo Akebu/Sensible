@@ -8,6 +8,9 @@ NSString *const SingleTouchAndHold = @"com.sensible.singletouchandhold";
 
 NSString *const SensiblePlist = @"com.tonyciroussel.sensibleprefs";
 NSString *const EnableKey = @"isEnabled";
+NSString *const ProtectCCKey = @"isCCProtected";
+NSString *const WaitTimeKey = @"waitTime";
+NSString *const OptimizeKey = @"optimizeKey";
 NSString *const VibrationIntensityKey = @"vibrationIntensity";
 NSString *const VibrationDurationKey = @"vibrationDuration";
 NSString *const SingleTouchList = @"SinglePressList";

@@ -6,6 +6,9 @@ extern NSString *const SingleTouchAndHold;
 
 extern NSString *const SensiblePlist;
 extern NSString *const EnableKey;
+extern NSString *const OptimizeKey;
+extern NSString *const ProtectCCKey;
+extern NSString *const WaitTimeKey;
 extern NSString *const VibrationIntensityKey;
 extern NSString *const VibrationDurationKey;
 extern NSString *const SingleTouchList;
