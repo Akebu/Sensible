@@ -27,7 +27,7 @@
 		[specifiers addObject:({
 			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Help me to translate") target:self set:NULL get:NULL detail:Nil cell:PSButtonCell edit:Nil];
 			[specifier setIdentifier:@"Repo"];
-			specifier->action = @selector(sendMailToTranslate);
+			specifier->action = @selector(openTranslation);
 			UIImage *image = [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"%@/Translate.png", mainBundle]];
 			[specifier setProperty:image forKey:@"iconImage"];
 			specifier;
@@ -37,23 +37,40 @@
 	return _specifiers;
 }
 
-- (void)sendMailToTranslate
+- (void)openTranslation
 {
-	if ([MFMailComposeViewController canSendMail]){
-		MFMailComposeViewController *mail = [[MFMailComposeViewController alloc] init];
-		mail.mailComposeDelegate = self;
-		[mail setSubject:@"Sensible translations"];
-		[mail setToRecipients:@[@"tony.ciroussel@riseup.net"]];
-
-   		[self presentViewController:mail animated:YES completion:NULL];
+	NSString *filza = @"filza://";
+	NSString *iFile = @"iFile://";
+	NSString *path = @"/Library/PreferenceBundles/SensiblePrefs.bundle/TranslateMe!/Localizable.strings";
+	BOOL canOpenFilza = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:filza]];
+	BOOL canOpeniFile = [[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:iFile]];
+	if(canOpenFilza){
+		NSString *pathForFilza = [NSString stringWithFormat:@"%@%@", filza, path];
+		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:pathForFilza]];
+		return;
 	}
-}
+	else if(canOpeniFile){
+		NSString *pathForiFile = [NSString stringWithFormat:@"%@%@", iFile, path];
+		[[UIApplication sharedApplication] openURL:[NSURL URLWithString:pathForiFile]];
+		return;
+	}
+	else
+	{
+		UIAlertController * alert = [UIAlertController
+			alertControllerWithTitle:@"Sensible"
+			message:LocalizedString(@"It seems that you have neither iFile nor Filza. It's simpler to translate from these applications, however you can also navigate into the PreferenceBundle and grab Localizable.strings\nOnce finished you can send me the file by email :)")
+			preferredStyle:UIAlertControllerStyleAlert];
 
-- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error
-{
-	[self dismissViewControllerAnimated:YES completion:NULL];
-}
+			UIAlertAction* yesButton = [UIAlertAction
+				actionWithTitle:@"Ok"
+				style:UIAlertActionStyleDefault
+				handler:nil];
 
+			[alert addAction:yesButton];
+			[self presentViewController:alert animated:YES completion:nil];
+	}
+	
+}
 
 - (id)countryForTranslator:(PSSpecifier *)specifier
 {

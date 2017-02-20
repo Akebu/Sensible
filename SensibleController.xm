@@ -1,7 +1,6 @@
 #import "SensibleController.h"
 #import "SensibleConst.h"
 #import <libactivator/libactivator.h>
-#import <QuartzCore/QuartzCore.h>
 
 FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, objc_object*, NSDictionary*);
 typedef uint32_t IOHIDEventOptionBits;
@@ -22,24 +21,8 @@ extern "C" {
 	return sharedInstance;
 }
 
-- (void)simulateHomeButtonDown
-{   
-	SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
-	IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 64, 1, 0);    
-	[springBoard _menuButtonDown:event];    
-	CFRelease(event);
-}
-
-- (void)simulateHomeButtonUp
-{   
-	SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
-	IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 64, 0, 0);    
-	[springBoard _menuButtonUp:event];    
-	CFRelease(event);
-}
-
 - (void)simulateLockButton
-{
+{	
 	SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
 	IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 48, 1, 0);        
 	[springBoard _lockButtonDown:event fromSource:1];    
@@ -50,90 +33,102 @@ extern "C" {
 
 }
 
-// === Handle touch on sensor
+/* Handle Touch on TouchID sensor */
 
 -(void)biometricEventMonitor:(id)monitor handleBiometricEvent:(unsigned)event {
+
+	/* TouchID Finger is DOWN */
 	if(event == TouchIDFingerDown){
-		[self vibrate];
-		isHolding = true;
-		holdTimer = [NSTimer scheduledTimerWithTimeInterval:2 target:self selector:@selector(getHold) userInfo:nil repeats:NO];
-		numberOfTouch++;
+		[self performSelectorInBackground:@selector(vibrate) withObject:nil];
+
 		if(_optimize){
 			float timeInterval = CACurrentMediaTime() - startTime;
-			if((timeInterval <= 0.3) && (timeInterval > 0.15)){
+			if((timeInterval <= 0.3) && (timeInterval >= 0.15)){
 				float timeToAdd = timeInterval;
-				[touchRecord addObject:[NSNumber numberWithFloat:timeToAdd]];
-				float newWaitTime = [[touchRecord valueForKeyPath:@"@avg.floatValue"] floatValue]+0.05;
-				_waitTime = [NSNumber numberWithFloat:newWaitTime];
+				float newWaitTime = (_waitTime+timeToAdd)/2;
+				_waitTime = newWaitTime;
 			}
+			startTime = CACurrentMediaTime();
 		}
-		if(numberOfTouch == 3){
-			[self getTouch];
-			[self resetTouchTimer];
+		if((_doubleTouchAction == 5) && (_tripleTouchAction == 5) && (_singleTouchAndHoldAction == 5)){
+			[self performSelector:@selector(getActionForHoldingAfterTouch) withObject:nil afterDelay:0];
 			return;
 		}
-		else if(numberOfTouch == 2){
-			[_touchTimer invalidate], _touchTimer = nil;
-			if(_singleTouchAndHoldAction == 5){
-				[self sendEventFromSource:DoubleTouch];
-				[holdTimer invalidate], holdTimer = nil;
-				[self resetTouchTimer];
-			}else{
-				_touchTimer = [NSTimer scheduledTimerWithTimeInterval:[_waitTime floatValue] target:self selector:@selector(getTouch) userInfo:nil repeats:NO];
+		else if(numberOfTouch == -1){
+			numberOfTouch = 0;
+		}
+		else if(numberOfTouch == 0){
+			[self performSelector:@selector(getActionForHold) withObject:nil afterDelay:1];
+		}
+		else if(numberOfTouch == 1){
+			[touchTimer invalidate], touchTimer = nil;
+			if((_tripleTouchAction == 5) && (_singleTouchAndHoldAction == 5)){
+				numberOfTouch = 0;
+				[self performSelector:@selector(sendEvenFromSource) withObject:DoubleTouch afterDelay:0];
 			}
-			return;
+			if(_singleTouchAndHoldAction != 5){
+				[self performSelector:@selector(getActionForHoldingAfterTouch) withObject:nil afterDelay:_waitTime+0.1];
+			}
+		}
+	}
+
+	/* TouchID Finger is UP */
+	if(event == TouchIDFingerUp){
+		if(numberOfTouch > -1){
+			numberOfTouch++;
+		
+			if(numberOfTouch == 1){
+				[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHold) object:nil];
+				touchTimer = [NSTimer scheduledTimerWithTimeInterval:_waitTime target:self selector:@selector(singleTouchTimer:) userInfo:nil repeats:NO];
+			}
+			else if(numberOfTouch == 2){
+				[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHoldingAfterTouch) object:nil];
+				if(_tripleTouchAction == 5){
+					numberOfTouch = 0;
+					[self sendEventFromSource:DoubleTouch];
+				}else{
+					[self performSelector:@selector(sendEventFromSource:) withObject:DoubleTouch afterDelay:_waitTime];
+				}
+			}
+			else if(numberOfTouch == 3){
+				[NSObject cancelPreviousPerformRequestsWithTarget:self];
+				numberOfTouch = 0;
+				[self sendEventFromSource:TripleTouch];
+			}
 		}
 		else
 		{
-			_touchTimer = [NSTimer scheduledTimerWithTimeInterval:[_waitTime floatValue] target:self selector:@selector(getTouch) userInfo:nil repeats:NO];
-			startTime = CACurrentMediaTime();
-			return;
+			numberOfTouch = 0;
 		}
-	}
-	if(event == TouchIDFingerUp){
-		if([holdTimer isValid]){
-			[holdTimer invalidate], holdTimer = nil;
-		}
-		isHolding = false;
 	}
 }
 
-- (void)getTouch
+- (void)_stopTimerIfLaunched
 {
-	if(numberOfTouch == 1){
-		if(!isHolding){
-			[self sendEventFromSource:SingleTouch];
-		}
-	}else if(numberOfTouch == 2){
-		if(isHolding){
-			[self sendEventFromSource:SingleTouchAndHold];
-			[holdTimer invalidate], holdTimer = nil;
-		}else{
-			[self sendEventFromSource:DoubleTouch];
-		}
-	}else{
-		[self sendEventFromSource:TripleTouch];
+	numberOfTouch = -1;
+	if([touchTimer isValid]){
+		[touchTimer invalidate], touchTimer = nil;
 	}
-	if(_optimize){
-		if([touchRecord count] == 50){
-			[touchRecord removeAllObjects];
-			[touchRecord addObject:_waitTime];
-		}
-	}
-
-	numberOfTouch = 0;
+	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHold) object:nil];
 }
 
-- (void)getHold
+- (void)singleTouchTimer:(NSTimer *)timer
+{
+	[timer invalidate], timer = nil;
+	numberOfTouch = 0;
+	[self sendEventFromSource:SingleTouch];
+}
+
+- (void)getActionForHold
 {
 	[self sendEventFromSource:Hold];
-	numberOfTouch = 0;
+	numberOfTouch = -1;
 }
 
-- (void)resetTouchTimer
+- (void)getActionForHoldingAfterTouch
 {
-	[_touchTimer invalidate], _touchTimer = nil;
 	numberOfTouch = 0;
+	[self sendEventFromSource:SingleTouchAndHold];
 }
 
 -(void)vibrate
@@ -144,6 +139,7 @@ extern "C" {
 }
 
 -(void)startMonitoring {
+	/*  From BioTesting by NoahSaso */
 	if(isMonitoring) {
 		return;
 	}
@@ -155,6 +151,7 @@ extern "C" {
 }
 
 -(void)stopMonitoring {
+	/*  From BioTesting by NoahSaso */
 	if(!isMonitoring) {
 		return;
 	}
@@ -168,6 +165,7 @@ extern "C" {
 - (void)sendEventFromSource:(NSString *)source
 {
 	int action = -1;
+	numberOfTouch = 0;
 
 	if([source isEqualToString:SingleTouch]){
 		action = [self singleTouchAction];
@@ -186,55 +184,31 @@ extern "C" {
 	}
 	switch (action){
 		case 0:{
-			// ===== Simulate home button =====
-
-			if([[%c(SBControlCenterController) sharedInstance] isVisible]){
-				[[%c(SBControlCenterController) sharedInstance] dismissAnimated:true completion:nil];
-			}
-			else if([[%c(SBNotificationCenterController) sharedInstance] isVisible]){
-				[[%c(SBNotificationCenterController) sharedInstance] dismissAnimated:true];
-			}
-			else
-			{
-				[[%c(SBUIController) sharedInstance] clickedMenuButton];
-			}
-			//[self simulateHomeButtonDown];
-			//[self simulateHomeButtonUp];
+			/*  Home button */
+			[[%c(SpringBoard) sharedApplication] _handleMenuButtonEvent];
 		break;
 		}
 		case 1:{
-			// ===== Multitask =====
-			[[%c(SBUIController) sharedInstance] handleMenuDoubleTap];
+			/*  Multitask */
+			[[%c(SpringBoard) sharedApplication] handleMenuDoubleTap];
 		break;
 		}
 		case 2:{
-			// ===== Simulate lock button =====
+			/*  Sleep! */
 			[self simulateLockButton];
 		break;
 		}
 		case 3:{
-			// ===== Call activator action =====
+			/*  Activator */
 			LAEvent *event = [LAEvent eventWithName:source mode:[LASharedActivator currentEventMode]];
 			[LASharedActivator sendEventToListener:event];
 		break;
 		}
 		case 4:{
-			// ===== Siri / VoiceControl =====
-			[[%c(SBVoiceControlController) sharedInstance] handleHomeButtonHeld];
+			/*  Siri / VoiceControl */
+			[[%c(SpringBoard) sharedApplication] _menuButtonWasHeld];
 		break;
 		}
-	}
-}
-
-- (void) setOptimize:(BOOL)shouldEnable
-{
-	_optimize = shouldEnable;
-	if(_optimize){
-		if(touchRecord == nil){
-			touchRecord = [[NSMutableArray alloc] init];
-		}
-	}else{
-		touchRecord = nil;
 	}
 }
 
@@ -255,10 +229,11 @@ static void loadPrefs() {
 	CFStringRef hold = (__bridge CFStringRef)HoldTouchList;
 	CFStringRef singleTouchAndHold = (__bridge CFStringRef)SingleTouchAndHoldList;
 
+	/*  Defaults values */
 	bool isEnabled = true;
 	bool sShouldProtectCC = true;
 	bool sShouldOptimize = true;
-	NSNumber *sWaitTimeinMs = [NSNumber numberWithFloat:0.20];
+	float sWaitTimeinMs = 0.20;
 	float sIntensity = 1.0;
 	float sDuration = 35.0;
 	int sSingleTouchAction = 0;
@@ -270,12 +245,12 @@ static void loadPrefs() {
 	CFPreferencesAppSynchronize(SensiblePrefs);
 	SensibleController *sController = [SensibleController sharedInstance];
 
-	// ===== Activation =====
+	/*  Activation */
 	if (CFBridgingRelease(CFPreferencesCopyAppValue(isTweakEnabled, SensiblePrefs))) {
 		isEnabled = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(isTweakEnabled, SensiblePrefs)) boolValue];
 	}
 
-	// ===== Vibrations =====
+	/*  Vibrations */
 	if (CFBridgingRelease(CFPreferencesCopyAppValue(vibrationIntensity, SensiblePrefs))) {
 		sIntensity = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(vibrationIntensity, SensiblePrefs)) floatValue];
 	}
@@ -283,7 +258,7 @@ static void loadPrefs() {
 		sDuration = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(vibrationDuration, SensiblePrefs)) floatValue];
 	}
 
-	// ===== Actions =====
+	/*  Events */
 	if (CFBridgingRelease(CFPreferencesCopyAppValue(singleTouchList, SensiblePrefs))) {
 		sSingleTouchAction = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(singleTouchList, SensiblePrefs)) intValue];
 	}
@@ -306,7 +281,7 @@ static void loadPrefs() {
 		sShouldOptimize = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(optimizeKey, SensiblePrefs)) boolValue];
 	}
 	if (CFBridgingRelease(CFPreferencesCopyAppValue(waitTimeMS, SensiblePrefs))) {
-		sWaitTimeinMs = [NSNumber numberWithFloat:[(id)CFBridgingRelease(CFPreferencesCopyAppValue(waitTimeMS, SensiblePrefs)) floatValue]];
+		sWaitTimeinMs = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(waitTimeMS, SensiblePrefs)) floatValue];
 	}
 
 	[sController setIsEnabled:isEnabled];
@@ -330,15 +305,48 @@ static void loadPrefs() {
 	[sController setWaitTime:sWaitTimeinMs];
 }
 
+/* Hooks */
+
 %hook SBControlCenterController
 
 -(void)_showControlCenterGestureBeganWithGestureRecognizer:(id)arg1
 {
 	SensibleController *sController = [SensibleController sharedInstance];
-	if([[sController touchTimer] isValid]){
-		[sController resetTouchTimer];
+	if([sController protectCC]){
+		SensibleController *sController = [SensibleController sharedInstance];
+		[sController _stopTimerIfLaunched];
 	}
 	%orig;
+}
+
+%end
+
+%hook SpringBoard
+
+- (void)_menuButtonDown:(CFTypeRef)event
+{
+	SensibleController *sController = [SensibleController sharedInstance];
+	[sController _stopTimerIfLaunched];
+	%orig;
+}
+
+%end
+
+%hook SBDeviceLockController
+
+-(void)_lockStateChangedFrom:(int)oldLockState to:(int)lockState
+{
+	%orig;
+	SensibleController *sController = [SensibleController sharedInstance];
+	if([sController isEnabled]){
+		if(lockState == 1){
+			[sController startMonitoring];
+		}
+		if(lockState == 0){
+			[sController stopMonitoring];
+		}
+	}
+		
 }
 
 %end

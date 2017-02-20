@@ -137,20 +137,20 @@
 
 	}
 	else if([identifier isEqualToString:@"Repo"]){
-				UIAlertController * alert = [UIAlertController
+			UIAlertController * alert = [UIAlertController
 			alertControllerWithTitle:@"Sensible"
-			message:@"Open with Cydia ?"
+			message:LocalizedString(@"Open with Cydia ?")
 			preferredStyle:UIAlertControllerStyleAlert];
 
 		UIAlertAction* yesButton = [UIAlertAction
-			actionWithTitle:@"Yes"
+			actionWithTitle:LocalizedString(@"Yes")
 			style:UIAlertActionStyleDefault
 			handler:^(UIAlertAction * action) {
                                     [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"cydia://url/https://cydia.saurik.com/api/share#?source=https://akebu.github.io/cydia/"]];
 			}];
 
 		UIAlertAction* noButton = [UIAlertAction
-			actionWithTitle:@"No"
+			actionWithTitle:LocalizedString(@"No")
 			style:UIAlertActionStyleDefault
 			handler:nil];
 

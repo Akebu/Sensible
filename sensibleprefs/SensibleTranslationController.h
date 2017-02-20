@@ -1,11 +1,10 @@
 #include "Headers.h"
 
-@interface SensibleTranslationController : PSListController <MFMailComposeViewControllerDelegate>
+@interface SensibleTranslationController : PSListController
 {
 }
 - (id) specifiers;
-- (void)sendMailToTranslate;
+- (void)openTranslation;
 - (id)countryForTranslator:(PSSpecifier *)specifier;
 - (NSDictionary *)getTranslators;
-- (void)mailComposeController:(MFMailComposeViewController *)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError *)error;
 @end
