@@ -39,8 +39,13 @@ extern "C" {
 
 	/* TouchID Finger is DOWN */
 	if(event == TouchIDFingerDown){
-		[self performSelectorInBackground:@selector(vibrate) withObject:nil];
 
+		[self performSelectorInBackground:@selector(vibrate) withObject:nil];
+		[[%c(SBLockScreenManager) sharedInstance] noteMenuButtonDown];
+		if([[%c(SBUIPluginManager) sharedInstance] handleButtonDownEventFromSource:1]){
+			return;
+		}
+		[[NSNotificationCenter defaultCenter] postNotificationName:@"SBMenuButtonPressedNotification" object:nil];
 		if(_optimize){
 			float timeInterval = CACurrentMediaTime() - startTime;
 			if((timeInterval <= 0.3) && (timeInterval >= 0.15)){
@@ -58,6 +63,7 @@ extern "C" {
 			numberOfTouch = 0;
 		}
 		else if(numberOfTouch == 0){
+			[self preheatHoldAction];
 			[self performSelector:@selector(getActionForHold) withObject:nil afterDelay:1];
 		}
 		else if(numberOfTouch == 1){
@@ -74,11 +80,17 @@ extern "C" {
 
 	/* TouchID Finger is UP */
 	if(event == TouchIDFingerUp){
+		[[%c(SBLockScreenManager) sharedInstance] noteMenuButtonUp];
+		[[%c(SBVoiceControlController) sharedInstance] preheatForMenuButtonWithFireDate:[NSDate dateWithTimeIntervalSinceNow:nil]];
+		if([[%c(SBUIPluginManager) sharedInstance] handleButtonUpEventFromSource:1]){
+			return;
+		}
 		if(numberOfTouch > -1){
 			numberOfTouch++;
 		
 			if(numberOfTouch == 1){
 				[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHold) object:nil];
+				[self resetHoldAction];
 				touchTimer = [NSTimer scheduledTimerWithTimeInterval:_waitTime target:self selector:@selector(singleTouchTimer:) userInfo:nil repeats:NO];
 			}
 			else if(numberOfTouch == 2){
@@ -103,6 +115,17 @@ extern "C" {
 	}
 }
 
+- (void) preheatHoldAction
+{
+	[[%c(SBUIPluginManager) sharedInstance] prepareForActivationEvent:1 eventSource:1 afterInterval:0.5];
+	[[%c(SBVoiceControlController) sharedInstance] preheatForMenuButtonWithFireDate:[NSDate dateWithTimeIntervalSinceNow:1.0f]];
+}
+
+- (void)resetHoldAction
+{
+	[[%c(SBUIPluginManager) sharedInstance] cancelPendingActivationEvent:1];
+}
+
 - (void)_stopTimerIfLaunched
 {
 	numberOfTouch = -1;
@@ -110,6 +133,7 @@ extern "C" {
 		[touchTimer invalidate], touchTimer = nil;
 	}
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHold) object:nil];
+	[self resetHoldAction];
 }
 
 - (void)singleTouchTimer:(NSTimer *)timer
@@ -185,7 +209,12 @@ extern "C" {
 	switch (action){
 		case 0:{
 			/*  Home button */
-			[[%c(SpringBoard) sharedApplication] _handleMenuButtonEvent];
+			SBIconController *iconController = [%c(SBIconController) sharedInstance];
+			if([iconController isEditing]){
+				[iconController setIsEditing:false];
+			}else{
+				[[%c(SpringBoard) sharedApplication] _handleMenuButtonEvent];
+			}
 		break;
 		}
 		case 1:{
@@ -347,6 +376,20 @@ static void loadPrefs() {
 		}
 	}
 		
+}
+
+%end
+
+%hook SBReachabilityManager
+
+-(BOOL)reachabilityEnabled
+{
+	SensibleController *sController = [SensibleController sharedInstance];
+	if([sController isEnabled]){
+		return false;
+	}else{
+		return %orig;
+	}
 }
 
 %end

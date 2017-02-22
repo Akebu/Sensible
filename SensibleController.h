@@ -22,6 +22,25 @@
 + (id)manager;
 @end
 
+@interface SBVoiceControlController : NSObject
++(id)sharedInstance;
+-(void)preheatForMenuButtonWithFireDate:(id)arg1 ;
+@end
+
+@interface SBUIPluginManager : NSObject
++(id)sharedInstance;
+-(BOOL)handleButtonDownEventFromSource:(int)arg1;
+-(BOOL)handleButtonUpEventFromSource:(int)arg1;
+-(void)cancelPendingActivationEvent:(int)arg1;
+-(void)prepareForActivationEvent:(int)arg1 eventSource:(int)arg2 afterInterval:(double)arg3;
+@end
+
+@interface SBIconController : NSObject
++(id)sharedInstance;
+-(void)setIsEditing:(BOOL)arg1;
+-(BOOL)isEditing;
+@end
+
 @interface SpringBoard : NSObject
 + (id) sharedApplication;
 - (void)_lockButtonDown:(CFTypeRef)arg1 fromSource:(int)arg2;
@@ -59,5 +78,8 @@
 
 @interface SBLockScreenManager : NSObject
 + (id) sharedInstanceIfExists;
++ (id) sharedInstance;
 - (BOOL)isUILocked;
+- (void)noteMenuButtonDown;
+- (void)noteMenuButtonUp;
 @end
