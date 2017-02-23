@@ -31,7 +31,7 @@
 	if (_specifiers == nil) {
 		NSMutableArray *specifiers = [[NSMutableArray alloc] init];
 		NSMutableArray *validOptions = [[NSMutableArray alloc] init];
-		NSArray *Options = [NSArray arrayWithObjects:LocalizedString(@"Home button"), LocalizedString(@"Multitask"), LocalizedString(@"Sleep"), LocalizedString(@"Assign an activator action"), LocalizedString(@"Siri / VoiceControl"), LocalizedString(@"Do nothing"), nil];
+		NSArray *Options = [NSArray arrayWithObjects:LocalizedString(@"Home button"), LocalizedString(@"Multitask"), LocalizedString(@"Sleep"), LocalizedString(@"Assign an activator listener"), LocalizedString(@"Siri / VoiceControl"), LocalizedString(@"Do nothing"), nil];
 		for (int i=0; i<[Options count]; i++){
 			[validOptions addObject:[NSString stringWithFormat:@"%i", i]];
 		}
@@ -106,7 +106,7 @@
 			specifier;
 		})];
 		[specifiers addObject:({
-			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Protection Control center") target:self set:Nil get:Nil detail:Nil cell:PSGroupCell edit:Nil];
+			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Protect CC") target:self set:Nil get:Nil detail:Nil cell:PSGroupCell edit:Nil];
 			[specifier setProperty:LocalizedString(@"Prevent accidentally register a touch when invoking the Control Center") forKey:@"footerText"];
 			specifier;
 		})];

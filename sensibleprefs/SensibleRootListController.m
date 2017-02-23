@@ -69,7 +69,7 @@
 			})];
 
 			[specifiers addObject:({
-				PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Actions")  target:self set:Nil get:Nil detail:NSClassFromString(@"SensibleBehaviorController") cell:PSLinkCell edit:Nil];
+				PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Behavior")  target:self set:Nil get:Nil detail:NSClassFromString(@"SensibleBehaviorController") cell:PSLinkCell edit:Nil];
 				specifier;
 			})];
 

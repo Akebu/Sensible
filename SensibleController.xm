@@ -81,7 +81,8 @@ extern "C" {
 	/* TouchID Finger is UP */
 	if(event == TouchIDFingerUp){
 		[[%c(SBLockScreenManager) sharedInstance] noteMenuButtonUp];
-		[[%c(SBVoiceControlController) sharedInstance] preheatForMenuButtonWithFireDate:[NSDate dateWithTimeIntervalSinceNow:nil]];
+		[[%c(SBVoiceControlController) sharedInstance] preheatForMenuButtonWithFireDate:nil];
+
 		if([[%c(SBUIPluginManager) sharedInstance] handleButtonUpEventFromSource:1]){
 			return;
 		}
@@ -386,7 +387,7 @@ static void loadPrefs() {
 {
 	SensibleController *sController = [SensibleController sharedInstance];
 	if([sController isEnabled]){
-		return false;
+		return NO;
 	}else{
 		return %orig;
 	}

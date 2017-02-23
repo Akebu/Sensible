@@ -10,7 +10,7 @@ FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, 
 	if (_specifiers == nil) {
 		NSMutableArray *specifiers = [[NSMutableArray alloc] init];
 		[specifiers addObject:({
-			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"TouchID Vibrations") target:self set:Nil get:Nil detail:Nil cell:PSGroupCell edit:Nil];
+			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Vibrations") target:self set:Nil get:Nil detail:Nil cell:PSGroupCell edit:Nil];
 			specifier;
 		})];
 		[specifiers addObject:({

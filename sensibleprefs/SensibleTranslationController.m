@@ -81,7 +81,8 @@
 {
 	    return @{	
 			@"Sarah Mathan": @"English",
-			@"Tony Ciroussel ": @"Français"
+			@"Tony Ciroussel ": @"Français",
+			@"Eng-mohammed Alhajaji" : @"العربية"
 		    };
 }
 
