@@ -14,10 +14,15 @@
 "Custom actions for TouchID" = "Actions personnalisé pour le TouchID";
 "Home button" = "Bouton d'accueil";
 "Multitask" = "Multitâche";
-"Sleep" = "Verouiller";
+"Sleep" = "Verrouiller";
+"Screenshot" = "Capture d'écran";
+"Launch last application" = "Lancer la dernière application";
+"Launch last application (circular) *" = "Lancer la dernière application (circulaire)*";
+"Kill current application" = "Terminer l'application courante";
 "Assign an activator listener" = "Assigner une action d'activator";
 "Siri / VoiceControl" = "Siri / Control Vocal";
 "Do nothing" = "Ne rien faire";
+"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher" = "Si vous choisissez l'option circulaire, vous pourrez revenir à la dernière application utilisé pour ensuite repasser sur cette dernière. Sinon la dernière application sera séléctionner selon l'ordre du multitache.";
 "Single touch" = "Appui simple";
 "Double touch" = "Appui double";
 "Triple touch" = "Appui triple";

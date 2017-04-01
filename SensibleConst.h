@@ -4,7 +4,6 @@ extern NSString *const TripleTouch;
 extern NSString *const Hold;
 extern NSString *const SingleTouchAndHold;
 
-extern NSString *const SensiblePlist;
 extern NSString *const EnableKey;
 extern NSString *const OptimizeKey;
 extern NSString *const ProtectCCKey;
@@ -16,3 +15,6 @@ extern NSString *const DoubleTouchList;
 extern NSString *const TripleTouchList;
 extern NSString *const HoldTouchList;
 extern NSString *const SingleTouchAndHoldList;
+extern NSString *const SensiblePlist;
+extern int const DoNothingIndex;
+

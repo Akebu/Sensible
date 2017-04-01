@@ -1,12 +1,9 @@
 #include "SensibleBehaviorController.h"
 #include "SensibleConst.h"
 #import <Preferences/PSListItemsController.h>
-#import <libactivator/libactivator.h>
+#import "../libactivator/libactivator.h"
 
 @interface SListItemsController : PSListItemsController
-{
-	NSString *listener;
-}
 - (void)tableView:(id)arg1 didSelectRowAtIndexPath:(id)arg2;
 @end
 
@@ -14,9 +11,9 @@
 
 - (void)tableView:(UITableView *)table didSelectRowAtIndexPath:(NSIndexPath *)index
 {
-	if((long)index.row == 3){
+	if((long)index.row == DoNothingIndex+1){
 		NSString *sensibleEventName = [[self specifier] identifier];
-		LAEventSettingsController *vc = [[LAEventSettingsController new] initWithModes:@[@"springboard", @"application"] eventName:sensibleEventName];
+		LAEventSettingsController *vc = [[NSClassFromString(@"LAEventSettingsController") new] initWithModes:@[@"springboard", @"application"] eventName:sensibleEventName];
 		[self.navigationController pushViewController:vc animated:YES];
 	}
 	[super tableView:table didSelectRowAtIndexPath:index];
@@ -31,7 +28,22 @@
 	if (_specifiers == nil) {
 		NSMutableArray *specifiers = [[NSMutableArray alloc] init];
 		NSMutableArray *validOptions = [[NSMutableArray alloc] init];
-		NSArray *Options = [NSArray arrayWithObjects:LocalizedString(@"Home button"), LocalizedString(@"Multitask"), LocalizedString(@"Sleep"), LocalizedString(@"Assign an activator listener"), LocalizedString(@"Siri / VoiceControl"), LocalizedString(@"Do nothing"), nil];
+		NSMutableArray *Options = [[NSMutableArray alloc] init];
+
+		[Options addObject:LocalizedString(@"Home button")];
+		[Options addObject:LocalizedString(@"Multitask")];
+		[Options addObject:LocalizedString(@"Sleep")];
+		[Options addObject:LocalizedString(@"Siri / VoiceControl")];
+		[Options addObject:LocalizedString(@"Reachability")];
+		[Options addObject:LocalizedString(@"Screenshot")];
+		[Options addObject:LocalizedString(@"Launch last application")];
+		[Options addObject:LocalizedString(@"Launch last application (circular) *")];
+		[Options addObject:LocalizedString(@"Kill current application")];
+		[Options addObject:LocalizedString(@"Do nothing")];
+		if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/libactivator.dylib"]){
+			[Options addObject:LocalizedString(@"Assign an activator listener")];
+		}
+
 		for (int i=0; i<[Options count]; i++){
 			[validOptions addObject:[NSString stringWithFormat:@"%i", i]];
 		}
@@ -48,6 +60,7 @@
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"0" forKey:@"default"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
+			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -61,6 +74,7 @@
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"1" forKey:@"default"];		
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
+			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -72,8 +86,9 @@
 			[specifier setProperty:TripleTouchList forKey:@"key"];
 			[specifier setIdentifier:TripleTouch];
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
-			[specifier setProperty:@"5" forKey:@"default"];
+			[specifier setProperty:[NSNumber numberWithInt:DoNothingIndex] forKey:@"default"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
+			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -85,8 +100,9 @@
 			[specifier setProperty:HoldTouchList forKey:@"key"];
 			[specifier setIdentifier:Hold];
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
-			[specifier setProperty:@"4" forKey:@"default"];	
+			[specifier setProperty:@"3" forKey:@"default"];	
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
+			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -100,6 +116,7 @@
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"2" forKey:@"default"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
+			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];

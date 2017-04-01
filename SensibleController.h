@@ -6,6 +6,43 @@
 #include <mach/mach.h>
 #include <mach/mach_time.h>
 
+FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, objc_object*, NSDictionary*);
+typedef uint32_t IOHIDEventOptionBits;
+typedef CFTypeRef IOHIDEventRef;
+extern "C" {
+    IOHIDEventRef IOHIDEventCreateKeyboardEvent(CFAllocatorRef allocator, uint64_t time, uint16_t page, uint16_t usage, Boolean down, IOHIDEventOptionBits flags);
+}
+
+@interface NSTask : NSObject
+- (void)setLaunchPath:(id)arg1;
+- (void)setArguments:(id)arg1;
+- (void)launch;
+@end
+
+@interface SBApplication : NSObject
+-(int)pid;
+@end
+
+@interface SBApplicationController
++(id)sharedInstance;
+-(id)applicationWithBundleIdentifier:(id)arg1 ;
+@end
+
+@interface SBUIController : NSObject
++(id)sharedInstanceIfExists;
+-(id)_switchAppList;
+-(void)activateApplication:(id)arg1 ;
+-(BOOL)_handleButtonEventToSuspendDisplays:(BOOL)arg1 displayWasSuspendedOut:(BOOL)arg2 ;
+-(void)programmaticSwitchAppGestureMoveToLeft;
+@end
+
+@interface SBSwitchAppList : NSObject
+-(NSArray *)list;
+@end
+
+@interface SBReachabilityTrigger : NSObject
+@end
+
 @protocol SBUIBiometricEventMonitorDelegate
 @required
 -(void)biometricEventMonitor:(id)monitor handleBiometricEvent:(unsigned)event;
@@ -16,6 +53,14 @@
 - (void)addObserver:(id)arg1;
 - (void)removeObserver:(id)arg1;
 - (void)setFingerDetectEnabled:(BOOL)arg1 requester:(CFStringRef)arg2;
+@end
+
+@interface SBReachabilityManager : NSObject
++(id)sharedInstance;
+-(void)_handleReachabilityActivated;
+-(void)_handleReachabilityDeactivated;
+-(BOOL)reachabilityModeActive;
+-(BOOL)reachabilityEnabled;
 @end
 
 @interface BiometricKit : NSObject
@@ -48,6 +93,9 @@
 - (void)_handleMenuButtonEvent;
 - (void)_menuButtonWasHeld;
 - (void)handleMenuDoubleTap;
+- (void)_menuButtonDown:(IOHIDEventRef)event;
+- (void)_menuButtonUp:(IOHIDEventRef)event;
+- (void)cancelMenuButtonRequests;
 @end
 
 @interface SensibleController : NSObject <SBUIBiometricEventMonitorDelegate> {

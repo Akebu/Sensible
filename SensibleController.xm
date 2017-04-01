@@ -1,13 +1,8 @@
 #import "SensibleController.h"
+#import "libactivator/libactivator.h"
 #import "SensibleConst.h"
-#import <libactivator/libactivator.h>
 
-FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, objc_object*, NSDictionary*);
-typedef uint32_t IOHIDEventOptionBits;
-typedef CFTypeRef IOHIDEventRef;
-extern "C" {
-    IOHIDEventRef IOHIDEventCreateKeyboardEvent(CFAllocatorRef allocator, uint64_t time, uint16_t page, uint16_t usage, Boolean down, IOHIDEventOptionBits flags);
-}
+static SensibleController *sensibleController;
 
 @implementation SensibleController
 
@@ -33,6 +28,22 @@ extern "C" {
 
 }
 
+- (void)simulateHomeButtonDown
+{   
+	SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
+	IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 64, 1, 0);    
+	[springBoard _menuButtonDown:event];    
+	CFRelease(event);
+}
+
+- (void)simulateHomeButtonUp
+{   
+	SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
+	IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 64, 0, 0);    
+	[springBoard _menuButtonUp:event];    
+	CFRelease(event);
+}
+
 /* Handle Touch on TouchID sensor */
 
 -(void)biometricEventMonitor:(id)monitor handleBiometricEvent:(unsigned)event {
@@ -41,10 +52,9 @@ extern "C" {
 	if(event == TouchIDFingerDown){
 
 		[self performSelectorInBackground:@selector(vibrate) withObject:nil];
+
 		[[%c(SBLockScreenManager) sharedInstance] noteMenuButtonDown];
-		if([[%c(SBUIPluginManager) sharedInstance] handleButtonDownEventFromSource:1]){
-			return;
-		}
+
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"SBMenuButtonPressedNotification" object:nil];
 		if(_optimize){
 			float timeInterval = CACurrentMediaTime() - startTime;
@@ -55,24 +65,23 @@ extern "C" {
 			}
 			startTime = CACurrentMediaTime();
 		}
-		if((_doubleTouchAction == 5) && (_tripleTouchAction == 5) && (_singleTouchAndHoldAction == 5)){
-			[self performSelector:@selector(getActionForHoldingAfterTouch) withObject:nil afterDelay:0];
+		if((_doubleTouchAction == DoNothingIndex) && (_tripleTouchAction == DoNothingIndex) && (_singleTouchAndHoldAction == DoNothingIndex)){
+			[self sendEventFromSource:SingleTouch];
 			return;
 		}
 		else if(numberOfTouch == -1){
 			numberOfTouch = 0;
 		}
 		else if(numberOfTouch == 0){
-			[self preheatHoldAction];
 			[self performSelector:@selector(getActionForHold) withObject:nil afterDelay:1];
 		}
 		else if(numberOfTouch == 1){
 			[touchTimer invalidate], touchTimer = nil;
-			if((_tripleTouchAction == 5) && (_singleTouchAndHoldAction == 5)){
+			if((_tripleTouchAction == DoNothingIndex) && (_singleTouchAndHoldAction == DoNothingIndex)){
 				numberOfTouch = 0;
-				[self performSelector:@selector(sendEvenFromSource) withObject:DoubleTouch afterDelay:0];
+				[self sendEventFromSource:DoubleTouch];
 			}
-			if(_singleTouchAndHoldAction != 5){
+			else if(_singleTouchAndHoldAction != DoNothingIndex){
 				[self performSelector:@selector(getActionForHoldingAfterTouch) withObject:nil afterDelay:_waitTime+0.1];
 			}
 		}
@@ -80,23 +89,17 @@ extern "C" {
 
 	/* TouchID Finger is UP */
 	if(event == TouchIDFingerUp){
-		[[%c(SBLockScreenManager) sharedInstance] noteMenuButtonUp];
-		[[%c(SBVoiceControlController) sharedInstance] preheatForMenuButtonWithFireDate:nil];
 
-		if([[%c(SBUIPluginManager) sharedInstance] handleButtonUpEventFromSource:1]){
-			return;
-		}
 		if(numberOfTouch > -1){
 			numberOfTouch++;
 		
 			if(numberOfTouch == 1){
 				[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHold) object:nil];
-				[self resetHoldAction];
 				touchTimer = [NSTimer scheduledTimerWithTimeInterval:_waitTime target:self selector:@selector(singleTouchTimer:) userInfo:nil repeats:NO];
 			}
 			else if(numberOfTouch == 2){
 				[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHoldingAfterTouch) object:nil];
-				if(_tripleTouchAction == 5){
+				if(_tripleTouchAction == DoNothingIndex){
 					numberOfTouch = 0;
 					[self sendEventFromSource:DoubleTouch];
 				}else{
@@ -116,30 +119,18 @@ extern "C" {
 	}
 }
 
-- (void) preheatHoldAction
-{
-	[[%c(SBUIPluginManager) sharedInstance] prepareForActivationEvent:1 eventSource:1 afterInterval:0.5];
-	[[%c(SBVoiceControlController) sharedInstance] preheatForMenuButtonWithFireDate:[NSDate dateWithTimeIntervalSinceNow:1.0f]];
-}
-
-- (void)resetHoldAction
-{
-	[[%c(SBUIPluginManager) sharedInstance] cancelPendingActivationEvent:1];
-}
-
 - (void)_stopTimerIfLaunched
 {
 	numberOfTouch = -1;
-	if([touchTimer isValid]){
+	if(touchTimer != nil){
 		[touchTimer invalidate], touchTimer = nil;
 	}
 	[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHold) object:nil];
-	[self resetHoldAction];
 }
 
 - (void)singleTouchTimer:(NSTimer *)timer
 {
-	[timer invalidate], timer = nil;
+	[touchTimer invalidate], touchTimer = nil;
 	numberOfTouch = 0;
 	[self sendEventFromSource:SingleTouch];
 }
@@ -171,8 +162,8 @@ extern "C" {
 	isMonitoring = YES;
 	SBUIBiometricEventMonitor* monitor = [[%c(BiometricKit) manager] delegate];
 	[monitor addObserver:self];
+	[monitor setFingerDetectEnabled:YES requester:CFSTR("SensibleController")];
 	numberOfTouch = 0;
-	[[%c(SBUIBiometricEventMonitor) sharedInstance] setFingerDetectEnabled:YES requester:CFSTR("SensibleController")];
 }
 
 -(void)stopMonitoring {
@@ -184,8 +175,9 @@ extern "C" {
 	SBUIBiometricEventMonitor* monitor = [[%c(BiometricKit) manager] delegate];
 	[monitor removeObserver:self];
 
-	[[%c(SBUIBiometricEventMonitor) sharedInstance] setFingerDetectEnabled:NO requester:CFSTR("SensibleController")];
+	[monitor setFingerDetectEnabled:NO requester:CFSTR("SensibleController")];
 }
+
 
 - (void)sendEventFromSource:(NSString *)source
 {
@@ -207,6 +199,19 @@ extern "C" {
 	else if([source isEqualToString:SingleTouchAndHold]){
 		action = [self singleTouchAndHoldAction];
 	}
+	/*
+	0 : Home Button
+	1 : Multitask
+	2 : Sleep
+	3 : Siri/VoiceControl
+	4 : Reachability
+	5 : Screenshot
+	6 : Launch last app
+	7 : Launch last app (circular)
+	8 : Kill current application
+	9 : Do nothing
+       10 : Activator (if installed)
+	*/
 	switch (action){
 		case 0:{
 			/*  Home button */
@@ -229,17 +234,73 @@ extern "C" {
 		break;
 		}
 		case 3:{
-			/*  Activator */
-			LAEvent *event = [LAEvent eventWithName:source mode:[LASharedActivator currentEventMode]];
-			[LASharedActivator sendEventToListener:event];
+			/*  Siri / VoiceControl */
+			[self simulateHomeButtonDown];
+			dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 1*NSEC_PER_SEC), dispatch_get_main_queue(), ^{
+				[self simulateHomeButtonUp];
+   			});
 		break;
 		}
 		case 4:{
-			/*  Siri / VoiceControl */
-			[[%c(SpringBoard) sharedApplication] _menuButtonWasHeld];
+			/*  Reachability */
+			SBReachabilityManager *reachManager = [%c(SBReachabilityManager) sharedInstance];
+			if([reachManager reachabilityEnabled]){
+				if([reachManager reachabilityModeActive]){
+					[reachManager _handleReachabilityDeactivated];
+				}else{
+					[reachManager _handleReachabilityActivated];
+				}
+			}
+		break;
+		}
+		case 5:{
+			/*  Screenshot */
+			[self simulateHomeButtonDown];
+			[self simulateLockButton];
+			[self simulateHomeButtonUp];
+		break;
+		}
+		case 6:{
+			/*  Launch last app */
+			[[%c(SBUIController) sharedInstanceIfExists] programmaticSwitchAppGestureMoveToLeft];
+		break;
+		}
+		case 7:{
+			/*  Launch last app (circular) */
+			NSString *lastLaunchedBundleID = [self getBundleInSwitchListWithIndex:1];
+			SBApplication *lastLaunchedApplication = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:lastLaunchedBundleID];
+			[[%c(SBUIController) sharedInstanceIfExists] activateApplication:lastLaunchedApplication];
+		break;
+		}
+		case 8:{
+			/*  Kill current application */
+			NSString *currentBundleID = [self getBundleInSwitchListWithIndex:0];
+			if(![currentBundleID isEqualToString:@"com.apple.SpringBoard"] && [[%c(SBUIController) sharedInstanceIfExists] _handleButtonEventToSuspendDisplays:NO displayWasSuspendedOut:NO]){
+				SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:currentBundleID];
+				NSTask *killallTask = [[NSTask alloc] init];
+				[killallTask setLaunchPath:@"/bin/bash"];
+				NSString *command = [NSString stringWithFormat:@"/bin/kill %@", [NSString stringWithFormat:@"%i", [app pid]]];
+				[killallTask setArguments:@[ @"-c", command]];
+				[killallTask launch];
+				killallTask = nil;
+			}
+				
+		break;
+		}
+		case 9:{
+			/*  Activator */
+			LAActivator *sharedActivator = [%c(LAActivator) sharedInstance];
+			LAEvent *event = [%c(LAEvent) eventWithName:source mode:[sharedActivator currentEventMode]];
+			[sharedActivator sendEventToListener:event];
 		break;
 		}
 	}
+}
+
+-(NSString *)getBundleInSwitchListWithIndex:(int)index
+{
+	SBSwitchAppList *switcher = [[%c(SBUIController) sharedInstanceIfExists] _switchAppList];
+	return [[switcher list] objectAtIndex:index];
 }
 
 @end
@@ -269,11 +330,10 @@ static void loadPrefs() {
 	int sSingleTouchAction = 0;
 	int sDoubleTouchAction = 1;
 	int sTripleTouchAction = 5;
-	int sHoldTouchAction = 4;
+	int sHoldTouchAction = 3;
 	int sSingleTouchAndHoldAction = 2;
-
+	
 	CFPreferencesAppSynchronize(SensiblePrefs);
-	SensibleController *sController = [SensibleController sharedInstance];
 
 	/*  Activation */
 	if (CFBridgingRelease(CFPreferencesCopyAppValue(isTweakEnabled, SensiblePrefs))) {
@@ -314,25 +374,58 @@ static void loadPrefs() {
 		sWaitTimeinMs = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(waitTimeMS, SensiblePrefs)) floatValue];
 	}
 
-	[sController setIsEnabled:isEnabled];
+	[sensibleController setIsEnabled:isEnabled];
 	SBLockScreenManager *possibleSharedInstance = [%c(SBLockScreenManager) sharedInstanceIfExists];
 	if(possibleSharedInstance != nil || [possibleSharedInstance isUILocked] != false){
 		if(isEnabled){
-			[[SensibleController sharedInstance] startMonitoring];
+			[sensibleController startMonitoring];
 		}else{
-			[[SensibleController sharedInstance] stopMonitoring];
+			[sensibleController stopMonitoring];
 		}
 	}
-	[sController setIntensity:sIntensity];
-	[sController setDuration:sDuration];
-	[sController setSingleTouchAction:sSingleTouchAction];
-	[sController setDoubleTouchAction:sDoubleTouchAction];
-	[sController setTripleTouchAction:sTripleTouchAction];
-	[sController setHoldTouchAction:sHoldTouchAction];
-	[sController setSingleTouchAndHoldAction:sSingleTouchAndHoldAction];
-	[sController setProtectCC:sShouldProtectCC];
-	[sController setOptimize:sShouldOptimize];
-	[sController setWaitTime:sWaitTimeinMs];
+	[sensibleController setIntensity:sIntensity];
+	[sensibleController setDuration:sDuration];
+	[sensibleController setSingleTouchAction:sSingleTouchAction];
+	[sensibleController setDoubleTouchAction:sDoubleTouchAction];
+	[sensibleController setTripleTouchAction:sTripleTouchAction];
+	[sensibleController setHoldTouchAction:sHoldTouchAction];
+	[sensibleController setSingleTouchAndHoldAction:sSingleTouchAndHoldAction];
+	[sensibleController setProtectCC:sShouldProtectCC];
+	[sensibleController setOptimize:sShouldOptimize];
+	[sensibleController setWaitTime:sWaitTimeinMs];
+}
+
+static void updatePlistIfNecessary() {
+
+	CFStringRef SensiblePrefs = (__bridge CFStringRef)SensiblePlist;
+	CFStringRef activatorKey = CFSTR("isActivatorInstalled");
+	bool activatorWasInstalled = false;
+
+	CFPreferencesAppSynchronize(SensiblePrefs);
+
+	if(CFBridgingRelease(CFPreferencesCopyAppValue(activatorKey, SensiblePrefs))){
+		activatorWasInstalled = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(activatorKey, SensiblePrefs)) boolValue];
+	}
+
+	if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/libactivator.dylib"]){
+		/* Activator is installed */
+		CFPreferencesSetValue(activatorKey, kCFBooleanTrue, SensiblePrefs, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
+	}else{
+		/* Activator isn't installed */
+		if(activatorWasInstalled){
+			/* Activator was installed before - Need to update the plist */
+			CFArrayRef CFAllKeys = CFPreferencesCopyKeyList(SensiblePrefs, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
+			NSArray *allKeys = (NSArray *)CFBridgingRelease(CFAllKeys);
+			for(NSString *key in allKeys){
+				int value = [(id)CFBridgingRelease(CFPreferencesCopyAppValue((__bridge CFStringRef)key, SensiblePrefs)) intValue];
+				if(value == DoNothingIndex+1){
+					CFPreferencesSetValue((__bridge CFStringRef)key, CFNumberCreate(NULL, kCFNumberIntType, &DoNothingIndex), SensiblePrefs, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
+				}
+			}
+		}
+		CFPreferencesSetValue(activatorKey, kCFBooleanFalse, SensiblePrefs, kCFPreferencesCurrentUser, kCFPreferencesCurrentUser);
+	}
+	CFPreferencesAppSynchronize(SensiblePrefs);
 }
 
 /* Hooks */
@@ -341,10 +434,8 @@ static void loadPrefs() {
 
 -(void)_showControlCenterGestureBeganWithGestureRecognizer:(id)arg1
 {
-	SensibleController *sController = [SensibleController sharedInstance];
-	if([sController protectCC]){
-		SensibleController *sController = [SensibleController sharedInstance];
-		[sController _stopTimerIfLaunched];
+	if([sensibleController protectCC]){
+		[sensibleController _stopTimerIfLaunched];
 	}
 	%orig;
 }
@@ -355,8 +446,9 @@ static void loadPrefs() {
 
 - (void)_menuButtonDown:(CFTypeRef)event
 {
-	SensibleController *sController = [SensibleController sharedInstance];
-	[sController _stopTimerIfLaunched];
+	if([sensibleController isEnabled]){
+		[sensibleController _stopTimerIfLaunched];
+	}
 	%orig;
 }
 
@@ -367,13 +459,12 @@ static void loadPrefs() {
 -(void)_lockStateChangedFrom:(int)oldLockState to:(int)lockState
 {
 	%orig;
-	SensibleController *sController = [SensibleController sharedInstance];
-	if([sController isEnabled]){
+	if([sensibleController isEnabled]){
 		if(lockState == 1){
-			[sController startMonitoring];
+			[sensibleController startMonitoring];
 		}
 		if(lockState == 0){
-			[sController stopMonitoring];
+			[sensibleController stopMonitoring];
 		}
 	}
 		
@@ -381,16 +472,24 @@ static void loadPrefs() {
 
 %end
 
-%hook SBReachabilityManager
+%hook SBReachabilityTrigger
 
--(BOOL)reachabilityEnabled
+-(void)biometricEventMonitor:(id)arg1 handleBiometricEvent:(unsigned long long)arg2
 {
-	SensibleController *sController = [SensibleController sharedInstance];
-	if([sController isEnabled]){
-		return NO;
-	}else{
-		return %orig;
+	if(![sensibleController isEnabled]){
+		%orig;
 	}
+}
+
+%end
+
+%hook SBMainSwitcherViewController
+
+-(void)_quitAppRepresentedByDisplayItem:(id)arg1 forReason:(long long)arg2
+{
+
+	%log;
+	%orig;
 }
 
 %end
@@ -399,5 +498,7 @@ static void loadPrefs() {
 {
 	%init;
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)loadPrefs, CFSTR("com.tonyciroussel.sensible/reloadSettings"), NULL, CFNotificationSuspensionBehaviorCoalesce);
+	sensibleController = [SensibleController sharedInstance];
+	updatePlistIfNecessary();
 	loadPrefs();
 }

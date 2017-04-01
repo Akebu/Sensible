@@ -9,7 +9,6 @@ SensiblePrefs_FILES = SensibleRootListController.m SensibleVibrationsController.
 SensiblePrefs_INSTALL_PATH = /Library/PreferenceBundles
 SensiblePrefs_FRAMEWORKS = UIKit MessageUI AudioToolbox
 SensiblePrefs_PRIVATE_FRAMEWORKS = Preferences
-SensiblePrefs_LIBRARIES = activator
 
 include $(THEOS_MAKE_PATH)/bundle.mk
 internal-stage::
