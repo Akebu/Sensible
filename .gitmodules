@@ -1,0 +1,3 @@
+[submodule "libactivator"]
+	path = libactivator
+	url = ../../rpetrich/libactivator.git
