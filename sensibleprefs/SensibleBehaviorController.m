@@ -37,7 +37,6 @@
 		[Options addObject:LocalizedString(@"Reachability")];
 		[Options addObject:LocalizedString(@"Screenshot")];
 		[Options addObject:LocalizedString(@"Launch last application")];
-		[Options addObject:LocalizedString(@"Launch last application (circular) *")];
 		[Options addObject:LocalizedString(@"Kill current application")];
 		[Options addObject:LocalizedString(@"Do nothing")];
 		if([[NSFileManager defaultManager] fileExistsAtPath:@"/usr/lib/libactivator.dylib"]){
@@ -60,7 +59,6 @@
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"0" forKey:@"default"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
-			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -74,7 +72,6 @@
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"1" forKey:@"default"];		
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
-			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -88,7 +85,6 @@
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
 			[specifier setProperty:[NSNumber numberWithInt:DoNothingIndex] forKey:@"default"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
-			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -102,7 +98,6 @@
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"3" forKey:@"default"];	
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
-			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -116,7 +111,6 @@
 			[specifier setProperty:SensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"2" forKey:@"default"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
-			[specifier setProperty:LocalizedString(@"If you choose circular, you will be able to switch between two applications. Otherwise the last application will be chossen according to the app switcher") forKey:@"staticTextMessage"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
 			specifier.shortTitleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -138,7 +132,6 @@
 		})];
 		[specifiers addObject:({
 			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Touch wait time (ms)") target:self set:Nil get:Nil detail:Nil cell:PSGroupCell edit:Nil];
-			[specifier setProperty:LocalizedString(@"Default is 0.25 ms, if optimize is enabled Sensible will analyze your habits in order to set the best wait time. The 5 first times can be long but it will become faster with time") forKey:@"footerText"];
 			specifier;
 		})];
 		[specifiers addObject:({

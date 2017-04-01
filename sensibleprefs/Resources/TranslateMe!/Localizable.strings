@@ -1,7 +1,6 @@
 "Crafted by Tony Ciroussel" = "";
 "Enabled" = "";
 "Options" = "";
-"Actions" = "";
 "Behavior" = "";
 "Vibrations" = "";
 "About" = "";
@@ -16,6 +15,9 @@
 "Home button" = "";
 "Multitask" = "";
 "Sleep" = "";
+"Screenshot" = "";
+"Launch last application" = "";
+"Kill current application" = "";
 "Assign an activator listener" = "";
 "Siri / VoiceControl" = "";
 "Do nothing" = "";

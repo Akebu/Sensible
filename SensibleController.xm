@@ -18,7 +18,7 @@ static SensibleController *sensibleController;
 
 - (void)simulateLockButton
 {	
-	SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
+	const SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
 	IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 48, 1, 0);        
 	[springBoard _lockButtonDown:event fromSource:1];    
 	CFRelease(event);
@@ -30,16 +30,16 @@ static SensibleController *sensibleController;
 
 - (void)simulateHomeButtonDown
 {   
-	SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
-	IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 64, 1, 0);    
+	const SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
+	const IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 64, 1, 0);    
 	[springBoard _menuButtonDown:event];    
 	CFRelease(event);
 }
 
 - (void)simulateHomeButtonUp
 {   
-	SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
-	IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 64, 0, 0);    
+	const SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
+	const IOHIDEventRef event = IOHIDEventCreateKeyboardEvent(kCFAllocatorDefault, mach_absolute_time(), 12, 64, 0, 0);    
 	[springBoard _menuButtonUp:event];    
 	CFRelease(event);
 }
@@ -57,10 +57,10 @@ static SensibleController *sensibleController;
 
 		[[NSNotificationCenter defaultCenter] postNotificationName:@"SBMenuButtonPressedNotification" object:nil];
 		if(_optimize){
-			float timeInterval = CACurrentMediaTime() - startTime;
+			const float timeInterval = CACurrentMediaTime() - startTime;
 			if((timeInterval <= 0.3) && (timeInterval >= 0.15)){
-				float timeToAdd = timeInterval;
-				float newWaitTime = (_waitTime+timeToAdd)/2;
+				const float timeToAdd = timeInterval;
+				const float newWaitTime = (_waitTime+timeToAdd)/2;
 				_waitTime = newWaitTime;
 			}
 			startTime = CACurrentMediaTime();
@@ -160,7 +160,7 @@ static SensibleController *sensibleController;
 		return;
 	}
 	isMonitoring = YES;
-	SBUIBiometricEventMonitor* monitor = [[%c(BiometricKit) manager] delegate];
+	const SBUIBiometricEventMonitor* monitor = [[%c(BiometricKit) manager] delegate];
 	[monitor addObserver:self];
 	[monitor setFingerDetectEnabled:YES requester:CFSTR("SensibleController")];
 	numberOfTouch = 0;
@@ -172,7 +172,7 @@ static SensibleController *sensibleController;
 		return;
 	}
 	isMonitoring = NO;
-	SBUIBiometricEventMonitor* monitor = [[%c(BiometricKit) manager] delegate];
+	const SBUIBiometricEventMonitor* monitor = [[%c(BiometricKit) manager] delegate];
 	[monitor removeObserver:self];
 
 	[monitor setFingerDetectEnabled:NO requester:CFSTR("SensibleController")];
@@ -207,15 +207,14 @@ static SensibleController *sensibleController;
 	4 : Reachability
 	5 : Screenshot
 	6 : Launch last app
-	7 : Launch last app (circular)
-	8 : Kill current application
-	9 : Do nothing
-       10 : Activator (if installed)
+	7 : Kill current application
+	8 : Do nothing
+        9 : Activator (if installed)
 	*/
 	switch (action){
 		case 0:{
 			/*  Home button */
-			SBIconController *iconController = [%c(SBIconController) sharedInstance];
+			const SBIconController *iconController = [%c(SBIconController) sharedInstance];
 			if([iconController isEditing]){
 				[iconController setIsEditing:false];
 			}else{
@@ -243,7 +242,7 @@ static SensibleController *sensibleController;
 		}
 		case 4:{
 			/*  Reachability */
-			SBReachabilityManager *reachManager = [%c(SBReachabilityManager) sharedInstance];
+			const SBReachabilityManager *reachManager = [%c(SBReachabilityManager) sharedInstance];
 			if([reachManager reachabilityEnabled]){
 				if([reachManager reachabilityModeActive]){
 					[reachManager _handleReachabilityDeactivated];
@@ -262,24 +261,19 @@ static SensibleController *sensibleController;
 		}
 		case 6:{
 			/*  Launch last app */
-			[[%c(SBUIController) sharedInstanceIfExists] programmaticSwitchAppGestureMoveToLeft];
+			[[%c(SBUIController) sharedInstance] programmaticSwitchAppGestureMoveToRight];
 		break;
 		}
 		case 7:{
-			/*  Launch last app (circular) */
-			NSString *lastLaunchedBundleID = [self getBundleInSwitchListWithIndex:1];
-			SBApplication *lastLaunchedApplication = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:lastLaunchedBundleID];
-			[[%c(SBUIController) sharedInstanceIfExists] activateApplication:lastLaunchedApplication];
-		break;
-		}
-		case 8:{
 			/*  Kill current application */
-			NSString *currentBundleID = [self getBundleInSwitchListWithIndex:0];
-			if(![currentBundleID isEqualToString:@"com.apple.SpringBoard"] && [[%c(SBUIController) sharedInstanceIfExists] _handleButtonEventToSuspendDisplays:NO displayWasSuspendedOut:NO]){
-				SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:currentBundleID];
-				NSTask *killallTask = [[NSTask alloc] init];
+			const SBUIController *uiController = [%c(SBUIController) sharedInstance];
+			const NSString *currentBundleID = [[[uiController _switchAppList] list] objectAtIndex:0];
+			const BOOL applicationSuspended = [uiController _handleButtonEventToSuspendDisplays:NO displayWasSuspendedOut:NO];
+			if(applicationSuspended){
+				const SBApplication *app = [[%c(SBApplicationController) sharedInstance] applicationWithBundleIdentifier:currentBundleID];
+				const NSTask *killallTask = [[NSTask alloc] init];
 				[killallTask setLaunchPath:@"/bin/bash"];
-				NSString *command = [NSString stringWithFormat:@"/bin/kill %@", [NSString stringWithFormat:@"%i", [app pid]]];
+				const NSString *command = [NSString stringWithFormat:@"/bin/kill %@", [NSString stringWithFormat:@"%i", [app pid]]];
 				[killallTask setArguments:@[ @"-c", command]];
 				[killallTask launch];
 				killallTask = nil;
@@ -289,7 +283,7 @@ static SensibleController *sensibleController;
 		}
 		case 9:{
 			/*  Activator */
-			LAActivator *sharedActivator = [%c(LAActivator) sharedInstance];
+			const LAActivator *sharedActivator = [%c(LAActivator) sharedInstance];
 			LAEvent *event = [%c(LAEvent) eventWithName:source mode:[sharedActivator currentEventMode]];
 			[sharedActivator sendEventToListener:event];
 		break;
@@ -297,28 +291,22 @@ static SensibleController *sensibleController;
 	}
 }
 
--(NSString *)getBundleInSwitchListWithIndex:(int)index
-{
-	SBSwitchAppList *switcher = [[%c(SBUIController) sharedInstanceIfExists] _switchAppList];
-	return [[switcher list] objectAtIndex:index];
-}
-
 @end
 
 static void loadPrefs() {
 
-	CFStringRef SensiblePrefs = (__bridge CFStringRef)SensiblePlist;
-	CFStringRef isTweakEnabled = (__bridge CFStringRef)EnableKey;
-	CFStringRef protectCC = (__bridge CFStringRef)ProtectCCKey;
-	CFStringRef optimizeKey = (__bridge CFStringRef)OptimizeKey;
-	CFStringRef waitTimeMS = (__bridge CFStringRef)WaitTimeKey;
-	CFStringRef vibrationIntensity = (__bridge CFStringRef)VibrationIntensityKey;
-	CFStringRef vibrationDuration = (__bridge CFStringRef)VibrationDurationKey;
-	CFStringRef singleTouchList = (__bridge CFStringRef)SingleTouchList;
-	CFStringRef doubleTouchList = (__bridge CFStringRef)DoubleTouchList;
-	CFStringRef tripleTouchList = (__bridge CFStringRef)TripleTouchList;
-	CFStringRef hold = (__bridge CFStringRef)HoldTouchList;
-	CFStringRef singleTouchAndHold = (__bridge CFStringRef)SingleTouchAndHoldList;
+	const CFStringRef SensiblePrefs = (__bridge CFStringRef)SensiblePlist;
+	const CFStringRef isTweakEnabled = (__bridge CFStringRef)EnableKey;
+	const CFStringRef protectCC = (__bridge CFStringRef)ProtectCCKey;
+	const CFStringRef optimizeKey = (__bridge CFStringRef)OptimizeKey;
+	const CFStringRef waitTimeMS = (__bridge CFStringRef)WaitTimeKey;
+	const CFStringRef vibrationIntensity = (__bridge CFStringRef)VibrationIntensityKey;
+	const CFStringRef vibrationDuration = (__bridge CFStringRef)VibrationDurationKey;
+	const CFStringRef singleTouchList = (__bridge CFStringRef)SingleTouchList;
+	const CFStringRef doubleTouchList = (__bridge CFStringRef)DoubleTouchList;
+	const CFStringRef tripleTouchList = (__bridge CFStringRef)TripleTouchList;
+	const CFStringRef hold = (__bridge CFStringRef)HoldTouchList;
+	const CFStringRef singleTouchAndHold = (__bridge CFStringRef)SingleTouchAndHoldList;
 
 	/*  Defaults values */
 	bool isEnabled = true;
@@ -375,7 +363,7 @@ static void loadPrefs() {
 	}
 
 	[sensibleController setIsEnabled:isEnabled];
-	SBLockScreenManager *possibleSharedInstance = [%c(SBLockScreenManager) sharedInstanceIfExists];
+	const SBLockScreenManager *possibleSharedInstance = [%c(SBLockScreenManager) sharedInstanceIfExists];
 	if(possibleSharedInstance != nil || [possibleSharedInstance isUILocked] != false){
 		if(isEnabled){
 			[sensibleController startMonitoring];
@@ -397,8 +385,8 @@ static void loadPrefs() {
 
 static void updatePlistIfNecessary() {
 
-	CFStringRef SensiblePrefs = (__bridge CFStringRef)SensiblePlist;
-	CFStringRef activatorKey = CFSTR("isActivatorInstalled");
+	const CFStringRef SensiblePrefs = (__bridge CFStringRef)SensiblePlist;
+	const CFStringRef activatorKey = CFSTR("isActivatorInstalled");
 	bool activatorWasInstalled = false;
 
 	CFPreferencesAppSynchronize(SensiblePrefs);
@@ -414,10 +402,10 @@ static void updatePlistIfNecessary() {
 		/* Activator isn't installed */
 		if(activatorWasInstalled){
 			/* Activator was installed before - Need to update the plist */
-			CFArrayRef CFAllKeys = CFPreferencesCopyKeyList(SensiblePrefs, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
-			NSArray *allKeys = (NSArray *)CFBridgingRelease(CFAllKeys);
+			const CFArrayRef CFAllKeys = CFPreferencesCopyKeyList(SensiblePrefs, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
+			const NSArray *allKeys = (NSArray *)CFBridgingRelease(CFAllKeys);
 			for(NSString *key in allKeys){
-				int value = [(id)CFBridgingRelease(CFPreferencesCopyAppValue((__bridge CFStringRef)key, SensiblePrefs)) intValue];
+				const int value = [(id)CFBridgingRelease(CFPreferencesCopyAppValue((__bridge CFStringRef)key, SensiblePrefs)) intValue];
 				if(value == DoNothingIndex+1){
 					CFPreferencesSetValue((__bridge CFStringRef)key, CFNumberCreate(NULL, kCFNumberIntType, &DoNothingIndex), SensiblePrefs, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
 				}
@@ -479,17 +467,6 @@ static void updatePlistIfNecessary() {
 	if(![sensibleController isEnabled]){
 		%orig;
 	}
-}
-
-%end
-
-%hook SBMainSwitcherViewController
-
--(void)_quitAppRepresentedByDisplayItem:(id)arg1 forReason:(long long)arg2
-{
-
-	%log;
-	%orig;
 }
 
 %end

@@ -18,4 +18,4 @@ NSString *const TripleTouchList = @"TriplePressList";
 NSString *const HoldTouchList = @"HoldList";
 NSString *const SingleTouchAndHoldList = @"SinglePressAndHoldList";
 NSString *const SensiblePlist = @"com.tonyciroussel.sensible";
-int const DoNothingIndex = 9;
+int const DoNothingIndex = 8;

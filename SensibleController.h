@@ -30,14 +30,17 @@ extern "C" {
 
 @interface SBUIController : NSObject
 +(id)sharedInstanceIfExists;
++(id)sharedInstance;
 -(id)_switchAppList;
 -(void)activateApplication:(id)arg1 ;
 -(BOOL)_handleButtonEventToSuspendDisplays:(BOOL)arg1 displayWasSuspendedOut:(BOOL)arg2 ;
--(void)programmaticSwitchAppGestureMoveToLeft;
+-(void)programmaticSwitchAppGestureMoveToRight;
 @end
 
 @interface SBSwitchAppList : NSObject
 -(NSArray *)list;
+-(id)applicationBundleIDBeforeBundleID:(id)arg1 ;
+-(id)applicationBundleIDAfterBundleID:(id)arg1 ;
 @end
 
 @interface SBReachabilityTrigger : NSObject
