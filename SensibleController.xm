@@ -65,8 +65,8 @@ static SensibleController *sensibleController;
 			}
 			startTime = CACurrentMediaTime();
 		}
-		if((_doubleTouchAction == DoNothingIndex) && (_tripleTouchAction == DoNothingIndex) && (_singleTouchAndHoldAction == DoNothingIndex)){
-			[self sendEventFromSource:SingleTouch];
+		if((_doubleTouchAction == kDoNothingIndex) && (_tripleTouchAction == kDoNothingIndex) && (_singleTouchAndHoldAction == kDoNothingIndex)){
+			[self sendEventFromSource:kSingleTouch];
 			return;
 		}
 		else if(numberOfTouch == -1){
@@ -77,11 +77,11 @@ static SensibleController *sensibleController;
 		}
 		else if(numberOfTouch == 1){
 			[touchTimer invalidate], touchTimer = nil;
-			if((_tripleTouchAction == DoNothingIndex) && (_singleTouchAndHoldAction == DoNothingIndex)){
+			if((_tripleTouchAction == kDoNothingIndex) && (_singleTouchAndHoldAction == kDoNothingIndex)){
 				numberOfTouch = 0;
-				[self sendEventFromSource:DoubleTouch];
+				[self sendEventFromSource:kDoubleTouch];
 			}
-			else if(_singleTouchAndHoldAction != DoNothingIndex){
+			else if(_singleTouchAndHoldAction != kDoNothingIndex){
 				[self performSelector:@selector(getActionForHoldingAfterTouch) withObject:nil afterDelay:_waitTime+0.1];
 			}
 		}
@@ -99,17 +99,17 @@ static SensibleController *sensibleController;
 			}
 			else if(numberOfTouch == 2){
 				[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHoldingAfterTouch) object:nil];
-				if(_tripleTouchAction == DoNothingIndex){
+				if(_tripleTouchAction == kDoNothingIndex){
 					numberOfTouch = 0;
-					[self sendEventFromSource:DoubleTouch];
+					[self sendEventFromSource:kDoubleTouch];
 				}else{
-					[self performSelector:@selector(sendEventFromSource:) withObject:DoubleTouch afterDelay:_waitTime];
+					[self performSelector:@selector(sendEventFromSource:) withObject:kDoubleTouch afterDelay:_waitTime];
 				}
 			}
 			else if(numberOfTouch == 3){
 				[NSObject cancelPreviousPerformRequestsWithTarget:self];
 				numberOfTouch = 0;
-				[self sendEventFromSource:TripleTouch];
+				[self sendEventFromSource:kTripleTouch];
 			}
 		}
 		else
@@ -132,19 +132,19 @@ static SensibleController *sensibleController;
 {
 	[touchTimer invalidate], touchTimer = nil;
 	numberOfTouch = 0;
-	[self sendEventFromSource:SingleTouch];
+	[self sendEventFromSource:kSingleTouch];
 }
 
 - (void)getActionForHold
 {
-	[self sendEventFromSource:Hold];
+	[self sendEventFromSource:kHold];
 	numberOfTouch = -1;
 }
 
 - (void)getActionForHoldingAfterTouch
 {
 	numberOfTouch = 0;
-	[self sendEventFromSource:SingleTouchAndHold];
+	[self sendEventFromSource:kSingleTouchAndHold];
 }
 
 -(void)vibrate
@@ -184,19 +184,19 @@ static SensibleController *sensibleController;
 	int action = -1;
 	numberOfTouch = 0;
 
-	if([source isEqualToString:SingleTouch]){
+	if([source isEqualToString:kSingleTouch]){
 		action = [self singleTouchAction];
 	}
-	else if([source isEqualToString:DoubleTouch]){
+	else if([source isEqualToString:kDoubleTouch]){
 		action = [self doubleTouchAction];
 	}
-	else if([source isEqualToString:TripleTouch]){
+	else if([source isEqualToString:kTripleTouch]){
 		action = [self tripleTouchAction];
 	}
-	else if([source isEqualToString:Hold]){
+	else if([source isEqualToString:kHold]){
 		action = [self holdTouchAction];
 	}
-	else if([source isEqualToString:SingleTouchAndHold]){
+	else if([source isEqualToString:kSingleTouchAndHold]){
 		action = [self singleTouchAndHoldAction];
 	}
 	/*
@@ -295,18 +295,18 @@ static SensibleController *sensibleController;
 
 static void loadPrefs() {
 
-	const CFStringRef SensiblePrefs = (__bridge CFStringRef)SensiblePlist;
-	const CFStringRef isTweakEnabled = (__bridge CFStringRef)EnableKey;
-	const CFStringRef protectCC = (__bridge CFStringRef)ProtectCCKey;
-	const CFStringRef optimizeKey = (__bridge CFStringRef)OptimizeKey;
-	const CFStringRef waitTimeMS = (__bridge CFStringRef)WaitTimeKey;
-	const CFStringRef vibrationIntensity = (__bridge CFStringRef)VibrationIntensityKey;
-	const CFStringRef vibrationDuration = (__bridge CFStringRef)VibrationDurationKey;
-	const CFStringRef singleTouchList = (__bridge CFStringRef)SingleTouchList;
-	const CFStringRef doubleTouchList = (__bridge CFStringRef)DoubleTouchList;
-	const CFStringRef tripleTouchList = (__bridge CFStringRef)TripleTouchList;
-	const CFStringRef hold = (__bridge CFStringRef)HoldTouchList;
-	const CFStringRef singleTouchAndHold = (__bridge CFStringRef)SingleTouchAndHoldList;
+	const CFStringRef SensiblePrefs = (CFStringRef)kSensiblePlist;
+	const CFStringRef isTweakEnabled = (CFStringRef)kEnableKey;
+	const CFStringRef protectCC = (CFStringRef)kProtectCCKey;
+	const CFStringRef optimizeKey = (CFStringRef)kOptimizeKey;
+	const CFStringRef waitTimeMS = (CFStringRef)kWaitTimeKey;
+	const CFStringRef vibrationIntensity = (CFStringRef)kVibrationIntensityKey;
+	const CFStringRef vibrationDuration = (CFStringRef)kVibrationDurationKey;
+	const CFStringRef singleTouchList = (CFStringRef)kSingleTouchList;
+	const CFStringRef doubleTouchList = (CFStringRef)kDoubleTouchList;
+	const CFStringRef tripleTouchList = (CFStringRef)kTripleTouchList;
+	const CFStringRef Hold = (CFStringRef)kHoldTouchList;
+	const CFStringRef SingleTouchAndHold = (CFStringRef)kSingleTouchAndHoldList;
 
 	/*  Defaults values */
 	bool isEnabled = true;
@@ -346,11 +346,11 @@ static void loadPrefs() {
 	if (CFBridgingRelease(CFPreferencesCopyAppValue(tripleTouchList, SensiblePrefs))) {
 		sTripleTouchAction = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(tripleTouchList, SensiblePrefs)) intValue];
 	}
-	if (CFBridgingRelease(CFPreferencesCopyAppValue(hold, SensiblePrefs))) {
-		sHoldTouchAction = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(hold, SensiblePrefs)) intValue];
+	if (CFBridgingRelease(CFPreferencesCopyAppValue(Hold, SensiblePrefs))) {
+		sHoldTouchAction = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(Hold, SensiblePrefs)) intValue];
 	}
-	if (CFBridgingRelease(CFPreferencesCopyAppValue(singleTouchAndHold, SensiblePrefs))) {
-		sSingleTouchAndHoldAction = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(singleTouchAndHold, SensiblePrefs)) intValue];
+	if (CFBridgingRelease(CFPreferencesCopyAppValue(SingleTouchAndHold, SensiblePrefs))) {
+		sSingleTouchAndHoldAction = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(SingleTouchAndHold, SensiblePrefs)) intValue];
 	}
 	if (CFBridgingRelease(CFPreferencesCopyAppValue(protectCC, SensiblePrefs))) {
 		sShouldProtectCC = [(id)CFBridgingRelease(CFPreferencesCopyAppValue(protectCC, SensiblePrefs)) boolValue];
@@ -385,7 +385,7 @@ static void loadPrefs() {
 
 static void updatePlistIfNecessary() {
 
-	const CFStringRef SensiblePrefs = (__bridge CFStringRef)SensiblePlist;
+	const CFStringRef SensiblePrefs = (CFStringRef)kSensiblePlist;
 	const CFStringRef activatorKey = CFSTR("isActivatorInstalled");
 	bool activatorWasInstalled = false;
 
@@ -406,8 +406,9 @@ static void updatePlistIfNecessary() {
 			const NSArray *allKeys = (NSArray *)CFBridgingRelease(CFAllKeys);
 			for(NSString *key in allKeys){
 				const int value = [(id)CFBridgingRelease(CFPreferencesCopyAppValue((__bridge CFStringRef)key, SensiblePrefs)) intValue];
-				if(value == DoNothingIndex+1){
-					CFPreferencesSetValue((__bridge CFStringRef)key, CFNumberCreate(NULL, kCFNumberIntType, &DoNothingIndex), SensiblePrefs, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
+				if(value == kDoNothingIndex+1){
+					const int doNothing = kDoNothingIndex;
+					CFPreferencesSetValue((__bridge CFStringRef)key, CFNumberCreate(NULL, kCFNumberIntType, &doNothing), SensiblePrefs, kCFPreferencesCurrentUser, kCFPreferencesCurrentHost);
 				}
 			}
 		}

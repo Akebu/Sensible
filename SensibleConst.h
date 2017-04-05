@@ -1,20 +1,19 @@
-extern NSString *const SingleTouch;
-extern NSString *const DoubleTouch;
-extern NSString *const TripleTouch;
-extern NSString *const Hold;
-extern NSString *const SingleTouchAndHold;
+#define  kSingleTouch @"com.sensible.singletouch"
+#define  kDoubleTouch @"com.sensible.doubletouch"
+#define  kTripleTouch @"com.sensible.tripletouch"
+#define  kHold @"com.sensible.hold"
+#define  kSingleTouchAndHold @"com.sensible.singletouchandhold"
 
-extern NSString *const EnableKey;
-extern NSString *const OptimizeKey;
-extern NSString *const ProtectCCKey;
-extern NSString *const WaitTimeKey;
-extern NSString *const VibrationIntensityKey;
-extern NSString *const VibrationDurationKey;
-extern NSString *const SingleTouchList;
-extern NSString *const DoubleTouchList;
-extern NSString *const TripleTouchList;
-extern NSString *const HoldTouchList;
-extern NSString *const SingleTouchAndHoldList;
-extern NSString *const SensiblePlist;
-extern int const DoNothingIndex;
-
+#define  kEnableKey @"isEnabled"
+#define  kProtectCCKey @"isCCProtected"
+#define  kWaitTimeKey @"waitTime"
+#define  kOptimizeKey @"optimizeKey"
+#define  kVibrationIntensityKey @"vibrationIntensity"
+#define  kVibrationDurationKey @"vibrationDuration"
+#define  kSingleTouchList @"SinglePressList"
+#define  kDoubleTouchList @"DoublePressList"
+#define  kTripleTouchList @"TriplePressList"
+#define  kHoldTouchList @"HoldList"
+#define  kSingleTouchAndHoldList @"SinglePressAndHoldList"
+#define  kSensiblePlist @"com.tonyciroussel.sensible"
+#define  kDoNothingIndex 8

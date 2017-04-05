@@ -11,7 +11,7 @@
 
 - (void)tableView:(UITableView *)table didSelectRowAtIndexPath:(NSIndexPath *)index
 {
-	if((long)index.row == DoNothingIndex+1){
+	if((long)index.row == kDoNothingIndex+1){
 		NSString *sensibleEventName = [[self specifier] identifier];
 		LAEventSettingsController *vc = [[NSClassFromString(@"LAEventSettingsController") new] initWithModes:@[@"springboard", @"application"] eventName:sensibleEventName];
 		[self.navigationController pushViewController:vc animated:YES];
@@ -54,9 +54,9 @@
 		[specifiers addObject:({
 			PSSpecifier* specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Single touch") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:NSClassFromString(@"SListItemsController") cell:PSLinkListCell edit:Nil];
 			[specifier setProperty:@YES forKey:@"enabled"];
-			[specifier setProperty:SingleTouchList forKey:@"key"];
-			[specifier setIdentifier:SingleTouch];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
+			[specifier setProperty:kSingleTouchList forKey:@"key"];
+			[specifier setIdentifier:kSingleTouch];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"0" forKey:@"default"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			specifier.values = validOptions;
@@ -67,9 +67,9 @@
 		[specifiers addObject:({
 			PSSpecifier* specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Double touch") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:NSClassFromString(@"SListItemsController") cell:PSLinkListCell edit:Nil];
 			[specifier setProperty:@YES forKey:@"enabled"];
-			[specifier setProperty:DoubleTouchList forKey:@"key"];
-			[specifier setIdentifier:DoubleTouch];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
+			[specifier setProperty:kDoubleTouchList forKey:@"key"];
+			[specifier setIdentifier:kDoubleTouch];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"1" forKey:@"default"];		
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			specifier.values = validOptions;
@@ -80,10 +80,10 @@
 		[specifiers addObject:({
 			PSSpecifier* specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Triple touch") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:NSClassFromString(@"SListItemsController") cell:PSLinkListCell edit:Nil];
 			[specifier setProperty:@YES forKey:@"enabled"];
-			[specifier setProperty:TripleTouchList forKey:@"key"];
-			[specifier setIdentifier:TripleTouch];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
-			[specifier setProperty:[NSNumber numberWithInt:DoNothingIndex] forKey:@"default"];
+			[specifier setProperty:kTripleTouchList forKey:@"key"];
+			[specifier setIdentifier:kTripleTouch];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
+			[specifier setProperty:[NSNumber numberWithInt:kDoNothingIndex] forKey:@"default"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			specifier.values = validOptions;
 			specifier.titleDictionary = [NSDictionary dictionaryWithObjects:Options forKeys:specifier.values];
@@ -93,9 +93,9 @@
 		[specifiers addObject:({
 			PSSpecifier* specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Hold") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:NSClassFromString(@"SListItemsController") cell:PSLinkListCell edit:Nil];
 			[specifier setProperty:@YES forKey:@"enabled"];
-			[specifier setProperty:HoldTouchList forKey:@"key"];
-			[specifier setIdentifier:Hold];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
+			[specifier setProperty:kHoldTouchList forKey:@"key"];
+			[specifier setIdentifier:kHold];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"3" forKey:@"default"];	
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			specifier.values = validOptions;
@@ -106,9 +106,9 @@
 		[specifiers addObject:({
 			PSSpecifier* specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Single touch and hold") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:NSClassFromString(@"SListItemsController") cell:PSLinkListCell edit:Nil];
 			[specifier setProperty:@YES forKey:@"enabled"];
-			[specifier setProperty:SingleTouchAndHoldList forKey:@"key"];
-			[specifier setIdentifier:SingleTouchAndHold];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
+			[specifier setProperty:kSingleTouchAndHoldList forKey:@"key"];
+			[specifier setIdentifier:kSingleTouchAndHold];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
 			[specifier setProperty:@"2" forKey:@"default"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			specifier.values = validOptions;
@@ -125,8 +125,8 @@
 			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Protect CC") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSwitchCell edit:Nil];
 			
 			[specifier setProperty:@YES forKey:@"default"];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
-			[specifier setProperty:ProtectCCKey forKey:@"key"];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
+			[specifier setProperty:kProtectCCKey forKey:@"key"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			specifier;
 		})];
@@ -138,8 +138,8 @@
 			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Optimize wait time") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSwitchCell edit:Nil];
 				
 			[specifier setProperty:@YES forKey:@"default"];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
-			[specifier setProperty:OptimizeKey forKey:@"key"];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
+			[specifier setProperty:kOptimizeKey forKey:@"key"];
 			[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 			specifier;
 		})];
@@ -148,8 +148,8 @@
 	
 			[specifier setProperty:@0.25 forKey:@"default"];
 			[specifier setProperty:@YES forKey:@"showValue"];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
-			[specifier setProperty:WaitTimeKey forKey:@"key"];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
+			[specifier setProperty:kWaitTimeKey forKey:@"key"];
 			[specifier setProperty:@0.10 forKey:@"min"];
 			[specifier setProperty:@0.50 forKey:@"max"];
 			[specifier setProperty:@YES forKey:@"isSegmented"];

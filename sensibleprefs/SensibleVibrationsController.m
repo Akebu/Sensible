@@ -21,8 +21,8 @@ FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, 
 			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:Nil target:self set:@selector(sendVibrationWithValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSliderCell edit:Nil];
 				
 			[specifier setProperty:@35 forKey:@"default"];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
-			[specifier setProperty:VibrationDurationKey forKey:@"key"];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
+			[specifier setProperty:kVibrationDurationKey forKey:@"key"];
 			[specifier setProperty:@0 forKey:@"min"];
 			[specifier setProperty:@80 forKey:@"max"];
 			[specifier setProperty:@YES forKey:@"showValue"];
@@ -38,8 +38,8 @@ FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, 
 			PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:Nil target:self set:@selector(sendVibrationWithValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSliderCell edit:Nil];
 				
 			[specifier setProperty:@1 forKey:@"default"];
-			[specifier setProperty:SensiblePlist forKey:@"defaults"];
-			[specifier setProperty:VibrationIntensityKey forKey:@"key"];
+			[specifier setProperty:kSensiblePlist forKey:@"defaults"];
+			[specifier setProperty:kVibrationIntensityKey forKey:@"key"];
 			[specifier setProperty:@0 forKey:@"min"];
 			[specifier setProperty:@1 forKey:@"max"];
 			[specifier setProperty:@YES forKey:@"showValue"];
@@ -56,18 +56,29 @@ FOUNDATION_EXTERN void AudioServicesPlaySystemSoundWithVibration(unsigned long, 
 {
 	[self setPreferenceValue:value specifier:specifier];
 
-	NSNumber *intensity;
-	NSNumber *duration;
-	NSDictionary *settings = [NSDictionary dictionaryWithContentsOfFile:@"/User/Library/Preferences/com.tonyciroussel.sensibleprefs.plist"];
+	NSNumber *intensity = @1;
+	NSNumber *duration = @35;
+
+	const CFStringRef SensiblePrefs = (CFStringRef)kSensiblePlist;
+	const CFStringRef vibrationIntensity = (CFStringRef)kVibrationIntensityKey;
+	const CFStringRef vibrationDuration = (CFStringRef)kVibrationDurationKey;
+
+	CFPreferencesAppSynchronize(SensiblePrefs);
+
 	if([specifier.identifier isEqualToString:@"Intensity.0"]){
 		intensity = value;
-		duration = [settings objectForKey:VibrationDurationKey] ? [settings objectForKey:VibrationDurationKey] : @35;
+		if (CFBridgingRelease(CFPreferencesCopyAppValue(vibrationDuration, SensiblePrefs))) {
+			duration = (id)CFBridgingRelease(CFPreferencesCopyAppValue(vibrationDuration, SensiblePrefs));
+		}
 	}
 	else
 	{
 		duration = value;
-		intensity = [settings objectForKey:VibrationIntensityKey] ? [settings objectForKey:VibrationIntensityKey] : @1;
+		if (CFBridgingRelease(CFPreferencesCopyAppValue(vibrationIntensity, SensiblePrefs))) {
+			intensity = (id)CFBridgingRelease(CFPreferencesCopyAppValue(vibrationIntensity, SensiblePrefs));
+		}
 	}
+
 	NSArray* arr = @[[NSNumber numberWithBool:YES], duration];
 	NSDictionary *dict = [NSDictionary dictionaryWithObjectsAndKeys:arr,@"VibePattern", intensity,@"Intensity",nil];
 	AudioServicesPlaySystemSoundWithVibration(kSystemSoundID_Vibrate, nil, dict);

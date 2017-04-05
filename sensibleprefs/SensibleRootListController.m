@@ -56,8 +56,8 @@
 				PSSpecifier *specifier = [PSSpecifier preferenceSpecifierNamed:LocalizedString(@"Enabled") target:self set:@selector(setPreferenceValue:specifier:) get:@selector(readPreferenceValue:) detail:Nil cell:PSSwitchCell edit:Nil];
 				
 				[specifier setProperty:@YES forKey:@"default"];
-				[specifier setProperty:SensiblePlist forKey:@"defaults"];
-				[specifier setProperty:EnableKey forKey:@"key"];
+				[specifier setProperty:kSensiblePlist forKey:@"defaults"];
+				[specifier setProperty:kEnableKey forKey:@"key"];
 				[specifier setProperty:@"com.tonyciroussel.sensible/reloadSettings" forKey:@"PostNotification"];
 				specifier;
 			})];
