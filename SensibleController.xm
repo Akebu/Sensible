@@ -6,16 +6,6 @@ static SensibleController *sensibleController;
 
 @implementation SensibleController
 
-+ (id)sharedInstance {
-	static id sharedInstance = nil;
-	static dispatch_once_t token = 0;
-	dispatch_once(&token, ^{
-		sharedInstance = [self new];
-	});
-
-	return sharedInstance;
-}
-
 - (void)simulateLockButton
 {	
 	const SpringBoard *springBoard = [%c(SpringBoard) sharedApplication];
@@ -443,16 +433,15 @@ static void updatePlistIfNecessary() {
 
 %end
 
-%hook SBDeviceLockController
+%hook SBLockScreenManager
 
--(void)_lockStateChangedFrom:(int)oldLockState to:(int)lockState
+-(void)_reallySetUILocked:(BOOL)isLocked
 {
 	%orig;
 	if([sensibleController isEnabled]){
-		if(lockState == 1){
+		if(!isLocked){
 			[sensibleController startMonitoring];
-		}
-		if(lockState == 0){
+		}else{
 			[sensibleController stopMonitoring];
 		}
 	}
@@ -476,7 +465,7 @@ static void updatePlistIfNecessary() {
 {
 	%init;
 	CFNotificationCenterAddObserver(CFNotificationCenterGetDarwinNotifyCenter(), NULL, (CFNotificationCallback)loadPrefs, CFSTR("com.tonyciroussel.sensible/reloadSettings"), NULL, CFNotificationSuspensionBehaviorCoalesce);
-	sensibleController = [SensibleController sharedInstance];
+	sensibleController = [[SensibleController alloc] init];
 	updatePlistIfNecessary();
 	loadPrefs();
 }

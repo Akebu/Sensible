@@ -121,7 +121,6 @@ extern "C" {
 @property (nonatomic, assign) int holdTouchAction;
 @property (nonatomic, assign) int singleTouchAndHoldAction;
 
-+ (id)sharedInstance;
 - (void)startMonitoring;
 - (void)stopMonitoring;
 - (void)_stopTimerIfLaunched;
