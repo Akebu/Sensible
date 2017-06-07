@@ -56,7 +56,7 @@ static SensibleController *sensibleController;
 			startTime = CACurrentMediaTime();
 		}
 		if((_doubleTouchAction == kDoNothingIndex) && (_tripleTouchAction == kDoNothingIndex) && (_singleTouchAndHoldAction == kDoNothingIndex)){
-			[self sendEventFromSource:kSingleTouch];
+			[self sendEventFromSource:[self singleTouchAction]];
 			return;
 		}
 		else if(numberOfTouch == -1){
@@ -69,7 +69,7 @@ static SensibleController *sensibleController;
 			[touchTimer invalidate], touchTimer = nil;
 			if((_tripleTouchAction == kDoNothingIndex) && (_singleTouchAndHoldAction == kDoNothingIndex)){
 				numberOfTouch = 0;
-				[self sendEventFromSource:kDoubleTouch];
+				[self sendEventFromSource:[self doubleTouchAction]];
 			}
 			else if(_singleTouchAndHoldAction != kDoNothingIndex){
 				[self performSelector:@selector(getActionForHoldingAfterTouch) withObject:nil afterDelay:_waitTime+0.1];
@@ -91,15 +91,15 @@ static SensibleController *sensibleController;
 				[NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(getActionForHoldingAfterTouch) object:nil];
 				if(_tripleTouchAction == kDoNothingIndex){
 					numberOfTouch = 0;
-					[self sendEventFromSource:kDoubleTouch];
+					[self sendEventFromSource:[self doubleTouchAction]];
 				}else{
-					[self performSelector:@selector(sendEventFromSource:) withObject:kDoubleTouch afterDelay:_waitTime];
+					[self performSelector:@selector(sendEventFromNSNumberSource:) withObject:[NSNumber numberWithInteger:[self doubleTouchAction]] afterDelay:_waitTime];
 				}
 			}
 			else if(numberOfTouch == 3){
 				[NSObject cancelPreviousPerformRequestsWithTarget:self];
 				numberOfTouch = 0;
-				[self sendEventFromSource:kTripleTouch];
+				[self sendEventFromSource:[self tripleTouchAction]];
 			}
 		}
 		else
@@ -122,19 +122,19 @@ static SensibleController *sensibleController;
 {
 	[touchTimer invalidate], touchTimer = nil;
 	numberOfTouch = 0;
-	[self sendEventFromSource:kSingleTouch];
+	[self sendEventFromSource:[self singleTouchAction]];
 }
 
 - (void)getActionForHold
 {
-	[self sendEventFromSource:kHold];
+	[self sendEventFromSource:[self holdTouchAction]];
 	numberOfTouch = -1;
 }
 
 - (void)getActionForHoldingAfterTouch
 {
 	numberOfTouch = 0;
-	[self sendEventFromSource:kSingleTouchAndHold];
+	[self sendEventFromSource:[self singleTouchAndHoldAction]];
 }
 
 -(void)vibrate
@@ -168,27 +168,14 @@ static SensibleController *sensibleController;
 	[monitor setFingerDetectEnabled:NO requester:CFSTR("SensibleController")];
 }
 
-
-- (void)sendEventFromSource:(NSString *)source
+- (void)sendEventFromNSNumberSource:(NSNumber *)action
 {
-	int action = -1;
-	numberOfTouch = 0;
+	[self sendEventFromSource:[action intValue]];
+}
 
-	if([source isEqualToString:kSingleTouch]){
-		action = [self singleTouchAction];
-	}
-	else if([source isEqualToString:kDoubleTouch]){
-		action = [self doubleTouchAction];
-	}
-	else if([source isEqualToString:kTripleTouch]){
-		action = [self tripleTouchAction];
-	}
-	else if([source isEqualToString:kHold]){
-		action = [self holdTouchAction];
-	}
-	else if([source isEqualToString:kSingleTouchAndHold]){
-		action = [self singleTouchAndHoldAction];
-	}
+- (void)sendEventFromSource:(int)action
+{
+	numberOfTouch = 0;
 	/*
 	0 : Home Button
 	1 : Multitask
@@ -199,7 +186,7 @@ static SensibleController *sensibleController;
 	6 : Launch last app
 	7 : Kill current application
 	8 : Do nothing
-        9 : Activator (if installed)
+    9 : Activator (if installed)
 	*/
 	switch (action){
 		case 0:{
@@ -266,13 +253,29 @@ static SensibleController *sensibleController;
 				const NSString *command = [NSString stringWithFormat:@"/bin/kill %@", [NSString stringWithFormat:@"%i", [app pid]]];
 				[killallTask setArguments:@[ @"-c", command]];
 				[killallTask launch];
-				killallTask = nil;
+				[killallTask release];
 			}
 				
 		break;
 		}
 		case 9:{
 			/*  Activator */
+			NSString *source = nil;
+			if(action  == [self singleTouchAction]){
+				source = kSingleTouch;
+			}
+			else if(action == [self doubleTouchAction]){
+				source = kDoubleTouch;
+			}
+			else if(action == [self tripleTouchAction]){
+				source = kTripleTouch;
+			}
+			else if(action == [self holdTouchAction]){
+				source = kHold;
+			}
+			else if(action == [self singleTouchAndHoldAction]){
+				source = kSingleTouchAndHold;
+			}
 			const LAActivator *sharedActivator = [%c(LAActivator) sharedInstance];
 			LAEvent *event = [%c(LAEvent) eventWithName:source mode:[sharedActivator currentEventMode]];
 			[sharedActivator sendEventToListener:event];
@@ -360,6 +363,10 @@ static void loadPrefs() {
 		}else{
 			[sensibleController stopMonitoring];
 		}
+	}
+	else
+	{
+		[sensibleController stopMonitoring];
 	}
 	[sensibleController setIntensity:sIntensity];
 	[sensibleController setDuration:sDuration];

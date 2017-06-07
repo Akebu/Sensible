@@ -6,7 +6,6 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = Sensible
 Sensible_FILES = SensibleController.xm SensibleEvents.xm
-SensibleController.xm_CFLAGS = -fobjc-arc
 Sensible_LDFLAGS += -Wl,-segalign,4000
 Sensible_FRAMEWORKS = IOKit Foundation UIKit AudioToolbox  QuartzCore
 
