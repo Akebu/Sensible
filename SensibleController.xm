@@ -41,7 +41,7 @@ static SensibleController *sensibleController;
 	/* TouchID Finger is DOWN */
 	if(event == TouchIDFingerDown){
 
-		[self performSelectorInBackground:@selector(vibrate) withObject:nil];
+		[self vibrate];
 
 		[[%c(SBLockScreenManager) sharedInstance] noteMenuButtonDown];
 
